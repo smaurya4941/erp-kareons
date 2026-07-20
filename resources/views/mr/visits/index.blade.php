@@ -1,19 +1,52 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="mb-6 flex justify-between items-center">
+<div class="mb-6 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
     <div>
-        <h2 class="text-2xl font-bold text-gray-800">My Doctor Visits</h2>
+        <h2 class="text-xl sm:text-2xl font-bold text-gray-800">My Doctor Visits</h2>
         <p class="text-sm text-gray-500">History of all your field meetings and discussions.</p>
     </div>
-    <div>
+    <div class="hidden sm:block">
         <x-button variant="primary" onclick="window.location.href='{{ route('mr.visits.create') }}'">
             + New Doctor Visit
         </x-button>
     </div>
 </div>
 
-<x-card>
+{{-- Mobile: card list --}}
+<div class="space-y-3 md:hidden">
+    @forelse($visits as $visit)
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 active:bg-gray-50 transition-colors">
+            <div class="flex items-start justify-between gap-3">
+                <div class="flex items-center gap-3 min-w-0">
+                    <div class="w-10 h-10 rounded-full bg-brand-50 text-brand-600 flex items-center justify-center flex-shrink-0 font-bold">
+                        {{ strtoupper(substr($visit->doctor_name, 0, 1)) }}
+                    </div>
+                    <div class="min-w-0">
+                        <p class="font-semibold text-gray-800 truncate">{{ $visit->doctor_name }}</p>
+                        <p class="text-xs text-gray-500 truncate">{{ $visit->specialization }}{{ $visit->area ? ' · '.$visit->area : '' }}</p>
+                    </div>
+                </div>
+                @if($visit->order)
+                    <span class="text-[10px] font-bold text-yellow-700 bg-yellow-100 px-2 py-1 rounded-full flex-shrink-0">Order</span>
+                @endif
+            </div>
+            <div class="mt-3 flex items-center justify-between text-xs">
+                <span class="text-gray-400">{{ $visit->date->format('d M, Y') }} · {{ \Carbon\Carbon::parse($visit->time)->format('h:i A') }}</span>
+                <div class="flex items-center gap-3 font-semibold">
+                    <span class="text-blue-600">{{ $visit->discussedProducts->count() }} prod</span>
+                    <span class="text-green-600">{{ $visit->distributedSamples->sum('quantity') }} smpl</span>
+                </div>
+            </div>
+        </div>
+    @empty
+        <div class="bg-white rounded-2xl border border-gray-100 p-8 text-center text-gray-500">You haven't recorded any doctor visits yet.</div>
+    @endforelse
+    <div class="pt-2">{{ $visits->links() }}</div>
+</div>
+
+{{-- Desktop: table --}}
+<x-card class="hidden md:block">
     <div class="overflow-x-auto">
         <table class="w-full whitespace-no-wrap">
             <thead>
@@ -55,7 +88,7 @@
                     </td>
                 </tr>
                 @endforeach
-                
+
                 @if($visits->isEmpty())
                 <tr>
                     <td colspan="6" class="px-4 py-8 text-center text-gray-500">You haven't recorded any doctor visits yet.</td>

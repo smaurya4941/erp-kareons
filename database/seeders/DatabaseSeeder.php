@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
         // Creates the Admin/MR roles and the default admin account.
         $this->call([
             RoleAndAdminSeeder::class,
+            ProductSeeder::class,
         ]);
     }
 }

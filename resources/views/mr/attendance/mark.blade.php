@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="mb-6">
-    <h2 class="text-2xl font-bold text-gray-800">Mark Attendance</h2>
+    <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Mark Attendance</h2>
     <p class="text-sm text-gray-500">{{ \Carbon\Carbon::now()->format('l, d M Y') }}</p>
 </div>
 
@@ -60,8 +60,18 @@
                 
                 <div id="camera-loading" class="absolute inset-0 flex flex-col items-center justify-center bg-gray-100 bg-opacity-90">
                     <svg class="animate-spin h-8 w-8 text-blue-600 mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                    <span class="text-sm text-gray-600">Initializing Camera...</span>
+                    <span class="text-sm text-gray-600" id="camera-loading-text">Initializing Camera...</span>
                 </div>
+            </div>
+
+            <!-- Camera selector (shown when more than one camera is available, e.g. laptop webcam + linked phone) -->
+            <div id="camera-selector-wrap" class="hidden mb-6">
+                <label for="camera-select" class="block text-xs font-bold text-gray-600 uppercase mb-1 flex items-center gap-1">
+                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                    Camera source
+                </label>
+                <select id="camera-select" class="block w-full text-sm border-gray-300 rounded-md shadow-sm bg-white focus:border-blue-500 focus:ring focus:ring-blue-500"></select>
+                <p class="text-[11px] text-gray-400 mt-1">Using your linked phone? Switch back to your built-in webcam here.</p>
             </div>
 
             <!-- GPS Status -->
@@ -80,15 +90,15 @@
                 <input type="file" name="selfie" id="selfie-file" class="hidden">
             </div>
 
-            <div class="flex justify-center space-x-4">
-                <button type="button" id="capture-btn" class="px-6 py-3 bg-gray-800 text-white rounded-lg font-bold shadow-md hover:bg-gray-700 disabled:opacity-50 flex items-center" disabled>
+            <div class="flex flex-col sm:flex-row sm:justify-center gap-3 sm:gap-4">
+                <button type="button" id="capture-btn" class="px-6 py-3 bg-gray-800 text-white rounded-xl font-bold shadow-md hover:bg-gray-700 disabled:opacity-50 flex items-center justify-center active:scale-95 transition-transform" disabled>
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                     Take Selfie
                 </button>
-                <button type="button" id="retake-btn" class="hidden px-6 py-3 bg-gray-500 text-white rounded-lg font-bold shadow-md hover:bg-gray-600">
+                <button type="button" id="retake-btn" class="hidden px-6 py-3 bg-gray-500 text-white rounded-xl font-bold shadow-md hover:bg-gray-600 active:scale-95 transition-transform">
                     Retake
                 </button>
-                <button type="submit" id="submit-btn" class="hidden px-6 py-3 {{ !$attendance ? 'bg-blue-600 hover:bg-blue-700' : 'bg-red-600 hover:bg-red-700' }} text-white rounded-lg font-bold shadow-md">
+                <button type="submit" id="submit-btn" class="hidden px-6 py-3 {{ !$attendance ? 'bg-blue-600 hover:bg-blue-700' : 'bg-red-600 hover:bg-red-700' }} text-white rounded-xl font-bold shadow-md active:scale-95 transition-transform">
                     {{ !$attendance ? 'Confirm Check In' : 'Confirm Check Out' }}
                 </button>
             </div>
@@ -103,25 +113,140 @@
             const retakeBtn = document.getElementById('retake-btn');
             const submitBtn = document.getElementById('submit-btn');
             const loading = document.getElementById('camera-loading');
+            const loadingText = document.getElementById('camera-loading-text');
             const gpsStatus = document.getElementById('gps-status');
             const latInput = document.getElementById('lat');
             const lngInput = document.getElementById('lng');
             const accuracyInput = document.getElementById('accuracy');
-            
+            const cameraSelect = document.getElementById('camera-select');
+            const cameraSelectorWrap = document.getElementById('camera-selector-wrap');
+
             let stream = null;
             let hasLocation = false;
+            let currentDeviceId = null;
+
+            // Cameras we do NOT want to auto-select on a laptop: linked phones (Windows
+            // Phone Link / iPhone Continuity Camera) and virtual/software cameras.
+            const NON_BUILTIN_RE = /phone|iphone|ipad|android|continuity|link|virtual|obs|snap|droidcam|iriun|manycam/i;
+
+            function showCameraError(message) {
+                loading.classList.remove('hidden');
+                loading.innerHTML = `<span class="text-red-500 font-bold text-center px-4">${message}</span>`;
+            }
 
             // 1. Initialize Camera
-            async function startCamera() {
+            async function startCamera(deviceId = null) {
+                // Stop any existing stream before switching to avoid the camera being "busy"
+                if (stream) {
+                    stream.getTracks().forEach(t => t.stop());
+                    stream = null;
+                }
+
+                loading.classList.remove('hidden');
+                if (loadingText) loadingText.textContent = 'Initializing Camera...';
+
+                const constraints = deviceId
+                    ? { video: { deviceId: { exact: deviceId } }, audio: false }
+                    : { video: { facingMode: 'user' }, audio: false };
+
                 try {
-                    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+                    stream = await navigator.mediaDevices.getUserMedia(constraints);
                     video.srcObject = stream;
+
+                    // Only hide the spinner once the video actually has frames — feels smooth.
+                    await new Promise((resolve) => {
+                        if (video.readyState >= 2) return resolve();
+                        video.onloadedmetadata = () => resolve();
+                    });
+                    await video.play().catch(() => {});
+
+                    const track = stream.getVideoTracks()[0];
+                    currentDeviceId = (track && track.getSettings && track.getSettings().deviceId) || deviceId;
+
                     loading.classList.add('hidden');
+                    await populateCameraList();
                     checkReadiness();
                 } catch (err) {
-                    loading.innerHTML = '<span class="text-red-500 font-bold">Error accessing camera. Please check permissions.</span>';
                     console.error('Camera error:', err);
+                    if (err && (err.name === 'NotAllowedError' || err.name === 'SecurityError')) {
+                        showCameraError('Camera permission was blocked. Please allow camera access in your browser and reload.');
+                    } else if (err && err.name === 'NotFoundError') {
+                        showCameraError('No camera found on this device.');
+                    } else if (err && err.name === 'NotReadableError') {
+                        showCameraError('The camera is in use by another app. Close it (e.g. Phone Link, Zoom, Teams) and reload.');
+                    } else {
+                        showCameraError('Could not start the camera. Please check permissions and reload.');
+                    }
                 }
+            }
+
+            // Populate / update the camera picker. Labels are only available after permission is granted.
+            async function populateCameraList() {
+                let cams = [];
+                try {
+                    const devices = await navigator.mediaDevices.enumerateDevices();
+                    cams = devices.filter(d => d.kind === 'videoinput');
+                } catch (e) {
+                    return;
+                }
+
+                if (cams.length <= 1) {
+                    cameraSelectorWrap.classList.add('hidden');
+                    return;
+                }
+
+                cameraSelectorWrap.classList.remove('hidden');
+                cameraSelect.innerHTML = '';
+                cams.forEach((cam, i) => {
+                    const opt = document.createElement('option');
+                    opt.value = cam.deviceId;
+                    opt.textContent = cam.label || `Camera ${i + 1}`;
+                    if (cam.deviceId === currentDeviceId) opt.selected = true;
+                    cameraSelect.appendChild(opt);
+                });
+            }
+
+            // Prefer a real built-in webcam over a linked phone / virtual camera.
+            function pickPreferredDeviceId(cams) {
+                const builtin = cams.find(c => c.label && !NON_BUILTIN_RE.test(c.label));
+                return (builtin || cams[0] || {}).deviceId || null;
+            }
+
+            // Orchestrates: get permission -> choose the best default camera -> stream it.
+            async function initCamera() {
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    showCameraError('This browser does not support camera access.');
+                    return;
+                }
+                try {
+                    // Lightweight permission prompt so device labels become readable.
+                    const permStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+                    permStream.getTracks().forEach(t => t.stop());
+                } catch (err) {
+                    console.error('Camera permission error:', err);
+                    if (err && err.name === 'NotReadableError') {
+                        showCameraError('The camera is in use by another app. Close it (e.g. Phone Link, Zoom, Teams) and reload.');
+                    } else {
+                        showCameraError('Camera permission is required. Please allow camera access and reload.');
+                    }
+                    return;
+                }
+
+                let cams = [];
+                try {
+                    const devices = await navigator.mediaDevices.enumerateDevices();
+                    cams = devices.filter(d => d.kind === 'videoinput');
+                } catch (e) { /* fall through to default */ }
+
+                const preferred = pickPreferredDeviceId(cams);
+                await startCamera(preferred);
+            }
+
+            // Let the user switch cameras manually (e.g. laptop webcam <-> linked phone).
+            if (cameraSelect) {
+                cameraSelect.addEventListener('change', () => {
+                    if (cameraSelect.value) startCamera(cameraSelect.value);
+                });
             }
 
             // 2. Initialize GPS
@@ -162,7 +287,7 @@
                 }
             }
 
-            startCamera();
+            initCamera();
             getLocation();
 
             // 3. Capture Logic

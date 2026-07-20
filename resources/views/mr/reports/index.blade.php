@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="mb-6 flex justify-between items-center">
+<div class="mb-6 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
     <div>
-        <h2 class="text-2xl font-bold text-gray-800">My Daily Reports</h2>
+        <h2 class="text-xl sm:text-2xl font-bold text-gray-800">My Daily Reports</h2>
         <p class="text-sm text-gray-500">History of your end-of-day reports.</p>
     </div>
     <!-- The "End Day" button is conditionally generated here if needed, but normally accessed via Dashboard -->
-    <x-button onclick="window.location.href='{{ route('mr.reports.create') }}'" variant="primary">
+    <x-button onclick="window.location.href='{{ route('mr.reports.create') }}'" variant="primary" class="w-full sm:w-auto">
         End Day / Draft Today's Report
     </x-button>
 </div>
@@ -24,7 +24,46 @@
 </div>
 @endif
 
-<x-card>
+@php
+    $reportStatusClass = fn($s) => $s === 'Draft' ? 'bg-gray-100 text-gray-700' : ($s === 'Reviewed' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700');
+@endphp
+
+{{-- Mobile: card list --}}
+<div class="space-y-3 md:hidden">
+    @forelse($reports as $report)
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+            <div class="flex items-center justify-between gap-2">
+                <div>
+                    <p class="font-bold text-gray-900">{{ $report->date->format('d M Y') }}</p>
+                    <p class="text-xs text-gray-500">{{ $report->date->format('l') }}</p>
+                </div>
+                <span class="px-2.5 py-1 text-[10px] font-bold rounded-full {{ $reportStatusClass($report->status) }}">{{ $report->status }}</span>
+            </div>
+            <div class="mt-3 grid grid-cols-3 gap-2 text-center">
+                <div class="bg-gray-50 rounded-lg py-2">
+                    <p class="text-[10px] uppercase tracking-wide text-gray-400 font-semibold">Visits</p>
+                    <p class="text-sm font-semibold text-gray-800">{{ $report->stats_snapshot['visits']['total_visits'] ?? 0 }}</p>
+                </div>
+                <div class="bg-gray-50 rounded-lg py-2">
+                    <p class="text-[10px] uppercase tracking-wide text-gray-400 font-semibold">Orders</p>
+                    <p class="text-sm font-semibold text-gray-800">{{ $report->stats_snapshot['orders']['total_orders'] ?? 0 }}</p>
+                </div>
+                <div class="bg-gray-50 rounded-lg py-2">
+                    <p class="text-[10px] uppercase tracking-wide text-gray-400 font-semibold">Hours</p>
+                    <p class="text-sm font-semibold text-gray-800">{{ $report->stats_snapshot['attendance']['working_hours'] ?? 'N/A' }}</p>
+                </div>
+            </div>
+            @if($report->status === 'Draft' && $report->date->format('Y-m-d') === \Carbon\Carbon::today()->format('Y-m-d'))
+                <a href="{{ route('mr.reports.create') }}" class="mt-3 block text-center text-xs font-semibold text-brand-600 bg-brand-50 rounded-lg py-2">Complete Draft →</a>
+            @endif
+        </div>
+    @empty
+        <div class="bg-white rounded-2xl border border-gray-100 p-8 text-center text-gray-500">You haven't submitted any daily reports yet.</div>
+    @endforelse
+    <div class="pt-2">{{ $reports->links() }}</div>
+</div>
+
+<x-card class="hidden md:block">
     <div class="overflow-x-auto">
         <table class="w-full whitespace-no-wrap">
             <thead>

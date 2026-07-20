@@ -30,10 +30,13 @@
             @include('partials.navbar')
 
             <!-- Main Page Content -->
-            <main class="w-full grow p-6 sm:p-8 max-w-7xl mx-auto">
+            <main class="w-full grow p-4 sm:p-8 max-w-7xl mx-auto pb-24 md:pb-8">
                 @yield('content')
             </main>
         </div>
+
+        <!-- Mobile bottom navigation (MR) -->
+        @include('partials.bottom-nav')
 
     </div>
 </body>

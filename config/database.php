@@ -53,6 +53,9 @@ return [
             'username' => env('DB_USERNAME', 'root'),
             'password' => env('DB_PASSWORD', ''),
             'unix_socket' => env('DB_SOCKET', ''),
+            // Keep MySQL's session time zone aligned with the app time zone so that
+            // TIMESTAMP columns (e.g. attendance check-in/out) convert consistently.
+            'timezone' => env('DB_TIMEZONE', '+05:30'),
             'charset' => env('DB_CHARSET', 'utf8mb4'),
             'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
             'prefix' => '',
@@ -73,6 +76,9 @@ return [
             'username' => env('DB_USERNAME', 'root'),
             'password' => env('DB_PASSWORD', ''),
             'unix_socket' => env('DB_SOCKET', ''),
+            // Keep MySQL's session time zone aligned with the app time zone so that
+            // TIMESTAMP columns (e.g. attendance check-in/out) convert consistently.
+            'timezone' => env('DB_TIMEZONE', '+05:30'),
             'charset' => env('DB_CHARSET', 'utf8mb4'),
             'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
             'prefix' => '',

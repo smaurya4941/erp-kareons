@@ -4,7 +4,7 @@
 <div x-data="visitWizard({{ $products->toJson() }}, {{ $assignedSamples->toJson() }})">
     <div class="mb-6 flex items-center justify-between">
         <div>
-            <h2 class="text-2xl font-bold text-gray-800">New Doctor Visit</h2>
+            <h2 class="text-xl sm:text-2xl font-bold text-gray-800">New Doctor Visit</h2>
             <p class="text-sm text-gray-500">Step <span x-text="step"></span> of 6</p>
         </div>
         <div class="text-sm font-medium text-gray-400" x-show="step < 6">
@@ -22,7 +22,7 @@
         <div class="bg-blue-600 h-2.5 rounded-full transition-all duration-300" :style="'width: ' + ((step / 6) * 100) + '%'"></div>
     </div>
 
-    <div class="bg-white rounded-lg shadow-sm border p-6 max-w-4xl mx-auto relative min-h-[400px]">
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 max-w-4xl mx-auto relative min-h-[400px]">
 
         <!-- STEP 1: Location & Doctor Details -->
         <div x-show="step === 1" x-transition.opacity>
@@ -66,8 +66,8 @@
                     <input type="text" x-model="form.area" class="block w-full mt-1 text-sm border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500" placeholder="e.g. Gomti Nagar">
                 </div>
             </div>
-            <div class="mt-8 flex justify-end">
-                <x-button type="button" variant="primary" @click="validateStep1()">Next Step →</x-button>
+            <div class="mt-8 flex flex-col sm:flex-row sm:justify-end">
+                <x-button type="button" variant="primary" @click="validateStep1()" class="w-full sm:w-auto justify-center">Next Step →</x-button>
             </div>
         </div>
 
@@ -109,8 +109,8 @@
                 </div>
             </div>
             
-            <div class="mt-8 flex justify-end">
-                <x-button type="button" variant="primary" @click="validateStep2()">Next Step →</x-button>
+            <div class="mt-8 flex flex-col sm:flex-row sm:justify-end">
+                <x-button type="button" variant="primary" @click="validateStep2()" class="w-full sm:w-auto justify-center">Next Step →</x-button>
             </div>
         </div>
 
@@ -162,8 +162,8 @@
                 </template>
             </div>
             
-            <div class="mt-8 flex justify-end">
-                <x-button type="button" variant="primary" @click="validateStep3()">Next Step →</x-button>
+            <div class="mt-8 flex flex-col sm:flex-row sm:justify-end">
+                <x-button type="button" variant="primary" @click="validateStep3()" class="w-full sm:w-auto justify-center">Next Step →</x-button>
             </div>
         </div>
 
@@ -180,7 +180,7 @@
 
             <div class="space-y-4 mb-4">
                 <template x-for="(row, index) in form.samples" :key="index">
-                    <div class="p-4 border rounded bg-green-50 relative flex gap-4 items-start">
+                    <div class="p-4 border rounded-xl bg-green-50 relative flex flex-col sm:flex-row gap-3 sm:gap-4 sm:items-end">
                         <div class="flex-1">
                             <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Select Sample</label>
                             <select x-model="row.product_id" class="block w-full text-sm border-gray-300 rounded-md shadow-sm bg-white">
@@ -190,14 +190,13 @@
                                 </template>
                             </select>
                         </div>
-                        
-                        <div class="w-32">
-                            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Quantity</label>
-                            <input type="number" x-model="row.quantity" min="1" class="block w-full text-sm border-gray-300 rounded-md shadow-sm">
-                        </div>
 
-                        <div class="pt-6">
-                            <button type="button" @click="removeSampleRow(index)" class="text-red-500 hover:text-red-700 p-2" title="Remove">
+                        <div class="flex items-end gap-3">
+                            <div class="flex-1 sm:w-32">
+                                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Quantity</label>
+                                <input type="number" x-model="row.quantity" min="1" class="block w-full text-sm border-gray-300 rounded-md shadow-sm">
+                            </div>
+                            <button type="button" @click="removeSampleRow(index)" class="text-red-500 hover:text-red-700 p-2 flex-shrink-0" title="Remove">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                             </button>
                         </div>
@@ -209,8 +208,8 @@
                 </div>
             </div>
             
-            <div class="mt-8 flex justify-end">
-                <x-button type="button" variant="primary" @click="validateStep4()">Next Step →</x-button>
+            <div class="mt-8 flex flex-col sm:flex-row sm:justify-end">
+                <x-button type="button" variant="primary" @click="validateStep4()" class="w-full sm:w-auto justify-center">Next Step →</x-button>
             </div>
         </div>
 
@@ -225,7 +224,7 @@
             
             <div class="space-y-4 mb-4">
                 <template x-for="(row, index) in form.orders" :key="index">
-                    <div class="p-4 border rounded bg-yellow-50 relative flex gap-4 items-start">
+                    <div class="p-4 border rounded-xl bg-yellow-50 relative flex flex-col sm:flex-row gap-3 sm:gap-4 sm:items-end">
                         <div class="flex-1">
                             <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Select Product</label>
                             <select x-model="row.product_id" class="block w-full text-sm border-gray-300 rounded-md shadow-sm bg-white">
@@ -235,14 +234,13 @@
                                 </template>
                             </select>
                         </div>
-                        
-                        <div class="w-32">
-                            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Quantity</label>
-                            <input type="number" x-model="row.quantity" min="1" class="block w-full text-sm border-gray-300 rounded-md shadow-sm">
-                        </div>
 
-                        <div class="pt-6">
-                            <button type="button" @click="removeOrderRow(index)" class="text-red-500 hover:text-red-700 p-2" title="Remove">
+                        <div class="flex items-end gap-3">
+                            <div class="flex-1 sm:w-32">
+                                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Quantity</label>
+                                <input type="number" x-model="row.quantity" min="1" class="block w-full text-sm border-gray-300 rounded-md shadow-sm">
+                            </div>
+                            <button type="button" @click="removeOrderRow(index)" class="text-red-500 hover:text-red-700 p-2 flex-shrink-0" title="Remove">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                             </button>
                         </div>
@@ -260,8 +258,8 @@
                 <textarea x-model="form.order_remarks" class="block w-full text-sm border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500" rows="2" placeholder="e.g. Urgent requirement, deliver next week..."></textarea>
             </div>
             
-            <div class="mt-8 flex justify-end">
-                <x-button type="button" variant="primary" @click="validateStep5()">Review & Submit →</x-button>
+            <div class="mt-8 flex flex-col sm:flex-row sm:justify-end">
+                <x-button type="button" variant="primary" @click="validateStep5()" class="w-full sm:w-auto justify-center">Review & Submit →</x-button>
             </div>
         </div>
 
@@ -271,8 +269,8 @@
             
             <div class="space-y-6">
                 <!-- Summary Card -->
-                <div class="bg-gray-50 p-4 rounded border text-sm">
-                    <div class="grid grid-cols-2 gap-4">
+                <div class="bg-gray-50 p-4 rounded-xl border text-sm">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <span class="font-bold text-gray-500 uppercase text-xs">Doctor</span>
                             <p class="font-bold text-lg text-gray-800" x-text="form.doctor_name"></p>
@@ -300,7 +298,7 @@
                 </div>
 
                 <!-- Samples & Orders -->
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <h4 class="font-bold text-gray-700 border-b mb-2 text-green-700">Samples Given</h4>
                         <ul class="list-disc pl-5 text-sm text-gray-600">
@@ -325,8 +323,8 @@
                 </div>
             </div>
             
-            <div class="mt-8 flex justify-end">
-                <x-button type="button" id="submit-btn" class="bg-green-600 hover:bg-green-700 text-white" @click="submitVisit()">Submit Visit</x-button>
+            <div class="mt-8 flex flex-col sm:flex-row sm:justify-end">
+                <x-button type="button" id="submit-btn" class="bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto justify-center" @click="submitVisit()">Submit Visit</x-button>
             </div>
         </div>
 

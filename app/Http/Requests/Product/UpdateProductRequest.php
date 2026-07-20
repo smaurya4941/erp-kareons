@@ -18,12 +18,13 @@ class UpdateProductRequest extends FormRequest
 
         return [
             'name' => ['required', 'string', 'max:255', 'unique:products,name,' . $productId],
-            'category' => ['required', 'string', 'max:255'],
-            'strength' => ['required', 'string', 'max:255'],
-            'pack_size' => ['required', 'string', 'max:255'],
+            // Only the name is required for now; the rest are optional.
+            'category' => ['nullable', 'string', 'max:255'],
+            'strength' => ['nullable', 'string', 'max:255'],
+            'pack_size' => ['nullable', 'string', 'max:255'],
             'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'description' => ['nullable', 'string'],
-            'status' => ['required', 'boolean'],
+            'status' => ['nullable', 'boolean'],
             
             // Future-ready fields
             'brand' => ['nullable', 'string', 'max:255'],

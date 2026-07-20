@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="mb-6 flex justify-between items-center">
+<div class="mb-6 flex flex-col-reverse sm:flex-row sm:justify-between sm:items-center gap-4">
     <div>
-        <h2 class="text-2xl font-bold text-gray-800">Order Details</h2>
+        <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Order Details</h2>
         <p class="text-sm text-gray-500">#ORD-{{ str_pad($order->id, 5, '0', STR_PAD_LEFT) }} collected on {{ $order->created_at->format('d M Y, h:i A') }}</p>
     </div>
     <div>
-        <x-button variant="secondary" onclick="window.location.href='{{ route('mr.orders.index') }}'">Back</x-button>
+        <x-button variant="secondary" onclick="window.location.href='{{ route('mr.orders.index') }}'" class="w-full sm:w-auto justify-center">Back</x-button>
     </div>
 </div>
 

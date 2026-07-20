@@ -15,12 +15,13 @@ class StoreProductRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255', 'unique:products,name'],
-            'category' => ['required', 'string', 'max:255'],
-            'strength' => ['required', 'string', 'max:255'],
-            'pack_size' => ['required', 'string', 'max:255'],
+            // Only the name is required for now; admin can fill the rest later.
+            'category' => ['nullable', 'string', 'max:255'],
+            'strength' => ['nullable', 'string', 'max:255'],
+            'pack_size' => ['nullable', 'string', 'max:255'],
             'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'], // 2MB Max
             'description' => ['nullable', 'string'],
-            'status' => ['required', 'boolean'],
+            'status' => ['nullable', 'boolean'],
             
             // Future-ready fields
             'brand' => ['nullable', 'string', 'max:255'],

@@ -1,15 +1,23 @@
 <header class="z-10 py-3 glass sticky top-0">
-    <div class="container flex items-center justify-between h-full px-6 mx-auto">
-        
+    <div class="container flex items-center justify-between h-full px-4 sm:px-6 mx-auto gap-2">
+
         <!-- Mobile hamburger -->
-        <button class="p-2 mr-5 -ml-1 rounded-lg md:hidden focus:outline-none focus:ring-2 focus:ring-brand-500 hover:bg-gray-100/50 transition-colors" @click="sidebarOpen = !sidebarOpen" aria-label="Menu">
+        <button class="p-2 -ml-1 rounded-lg md:hidden focus:outline-none focus:ring-2 focus:ring-brand-500 hover:bg-gray-100/50 transition-colors flex-shrink-0" @click="sidebarOpen = !sidebarOpen" aria-label="Menu">
             <svg class="w-6 h-6 text-gray-600" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path>
             </svg>
         </button>
 
-        <!-- Search input -->
-        <div class="flex justify-center flex-1 lg:mr-32">
+        <!-- Mobile brand (shown when search is hidden) -->
+        <a href="{{ auth()->user()?->hasRole('Admin') ? route('admin.dashboard') : route('mr.dashboard') }}" class="flex items-center gap-2 md:hidden font-bold text-gray-800 tracking-tight">
+            <span class="w-7 h-7 rounded-lg bg-gradient-to-tr from-brand-600 to-brand-400 flex items-center justify-center shadow-md shadow-brand-500/30 flex-shrink-0">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+            </span>
+            <span class="text-base">KareOns</span>
+        </a>
+
+        <!-- Search input (desktop / tablet) -->
+        <div class="hidden md:flex justify-center flex-1 lg:mr-32">
             <div class="relative w-full max-w-xl mr-6 focus-within:text-brand-500 transition-colors">
                 <div class="absolute inset-y-0 flex items-center pl-3">
                     <svg class="w-4 h-4 text-gray-400" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
@@ -20,7 +28,7 @@
             </div>
         </div>
 
-        <ul class="flex items-center flex-shrink-0 space-x-6">
+        <ul class="flex items-center flex-shrink-0 space-x-2 sm:space-x-6 ml-auto md:ml-0">
             <!-- Notifications (Mockup) -->
             <li class="relative">
                 <button class="relative align-middle rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500 p-2 text-gray-400 hover:text-brand-600 transition-colors" aria-label="Notifications" aria-haspopup="true">

@@ -2,11 +2,35 @@
 
 @section('content')
 <div class="mb-6">
-    <h2 class="text-2xl font-bold text-gray-800">My Orders</h2>
+    <h2 class="text-xl sm:text-2xl font-bold text-gray-800">My Orders</h2>
     <p class="text-sm text-gray-500">Track the status of orders you collected during doctor visits.</p>
 </div>
 
-<x-card>
+@php
+    $statusClass = fn($s) => $s === 'Completed' ? 'bg-green-100 text-green-700' : ($s === 'Reviewed' ? 'bg-indigo-100 text-indigo-700' : 'bg-yellow-100 text-yellow-700');
+@endphp
+
+{{-- Mobile: card list --}}
+<div class="space-y-3 md:hidden">
+    @forelse($orders as $order)
+        <a href="{{ route('mr.orders.show', $order) }}" class="block bg-white rounded-2xl shadow-sm border border-gray-100 p-4 active:bg-gray-50 transition-colors">
+            <div class="flex items-center justify-between gap-2">
+                <span class="font-bold text-gray-900">#ORD-{{ str_pad($order->id, 5, '0', STR_PAD_LEFT) }}</span>
+                <span class="px-2.5 py-1 text-[10px] font-bold rounded-full {{ $statusClass($order->status) }}">{{ $order->status }}</span>
+            </div>
+            <p class="mt-1 text-sm font-semibold text-gray-800">{{ $order->doctor_name }}</p>
+            <div class="mt-2 flex items-center justify-between text-xs">
+                <span class="text-gray-400">{{ $order->created_at->format('d M Y, h:i A') }}</span>
+                <span class="text-blue-600 font-bold">{{ $order->items->sum('quantity') }} units · {{ $order->items->count() }} items</span>
+            </div>
+        </a>
+    @empty
+        <div class="bg-white rounded-2xl border border-gray-100 p-8 text-center text-gray-500">You haven't collected any orders yet.</div>
+    @endforelse
+    <div class="pt-2">{{ $orders->links() }}</div>
+</div>
+
+<x-card class="hidden md:block">
     <div class="overflow-x-auto">
         <table class="w-full whitespace-no-wrap">
             <thead>

@@ -3,7 +3,7 @@
 @section('content')
 <div class="mb-6 flex justify-between items-center">
     <div>
-        <h2 class="text-2xl font-bold text-gray-800">End Day Report</h2>
+        <h2 class="text-xl sm:text-2xl font-bold text-gray-800">End Day Report</h2>
         <p class="text-sm text-gray-500">Review your daily statistics and submit your final report for {{ $report->date->format('d M Y') }}.</p>
     </div>
 </div>
@@ -77,9 +77,9 @@
                     @enderror
                 </div>
 
-                <div class="flex justify-end space-x-4 border-t pt-4">
-                    <x-button type="button" variant="secondary" onclick="window.location.href='{{ route('mr.dashboard') }}'">Cancel</x-button>
-                    <x-button type="submit" variant="primary">Submit Final Report</x-button>
+                <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 border-t pt-4">
+                    <x-button type="button" variant="secondary" onclick="window.location.href='{{ route('mr.dashboard') }}'" class="w-full sm:w-auto justify-center">Cancel</x-button>
+                    <x-button type="submit" variant="primary" class="w-full sm:w-auto justify-center">Submit Final Report</x-button>
                 </div>
             </form>
         </x-card>
