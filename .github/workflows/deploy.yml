@@ -24,9 +24,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Install Node Packages
+        run: npm install
 
-      - run: npm ci
-      - run: npm run build
+      - name: Build Assets
+        run: npm run build
 
       - name: Deploy
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
@@ -39,7 +41,12 @@ jobs:
           server-dir: /
           exclude: |
             **/.git*
-            **/.github/**
+            **/.git/**
             **/node_modules/**
+            **/vendor/**
             **/tests/**
-            **/.env
+            **/.github/**
+            **/storage/logs/**
+            **/storage/framework/cache/**
+            **/storage/framework/sessions/**
+            **/storage/framework/views/**
