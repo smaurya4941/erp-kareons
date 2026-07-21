@@ -10,43 +10,51 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: "8.2"
 
-      - name: Install Composer
+      - name: Install Composer Dependencies
         run: composer install --no-dev --prefer-dist --optimize-autoloader
 
-      - name: Setup Node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Install Node Packages
-        run: npm install
+          cache: npm
 
-      - name: Build Assets
+      - name: Install Node Dependencies
+        run: npm ci
+
+      - name: Build Vite Assets
         run: npm run build
 
-      - name: Deploy
+      - name: Remove Vite Hot File
+        run: rm -f public/hot
+
+      - name: Deploy to Hostinger
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          port: ${{ secrets.FTP_PORT }}
           protocol: ftp
+          port: ${{ secrets.FTP_PORT }}
           server-dir: /
+          dangerous-clean-slate: false
           exclude: |
             **/.git*
-            **/.git/**
-            **/node_modules/**
-            **/vendor/**
-            **/tests/**
             **/.github/**
+            **/node_modules/**
+            **/tests/**
             **/storage/logs/**
             **/storage/framework/cache/**
             **/storage/framework/sessions/**
             **/storage/framework/views/**
+            **/.env
+            **/.env.*
+            **/public/hot
