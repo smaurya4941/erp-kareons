@@ -1,7 +1,7 @@
 @php
     // Shared classes for nav items so desktop + mobile stay in sync.
-    $navBase = 'inline-flex items-center w-full px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-lg hover:bg-gray-800 hover:text-white';
-    $navActive = 'bg-gradient-to-r from-brand-600 to-brand-500 text-white shadow-md shadow-brand-500/20';
+    $navBase = 'inline-flex items-center w-full px-4 py-2.5 text-sm font-medium transition-all duration-300 rounded-xl hover:bg-gray-800/80 hover:text-white group';
+    $navActive = 'bg-[#5B4CF0] text-white shadow-[0_0_15px_rgba(91,76,240,0.5)] border-l-4 border-l-[#8B5CF6]';
     $navIdle = 'text-gray-400';
 @endphp
 

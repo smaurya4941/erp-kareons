@@ -80,7 +80,7 @@ class MrPerformanceReportController extends Controller
                   ->whereNotNull('check_out_time');
         }, 'doctorVisits' => function($query) use ($startDateTime, $endDateTime) {
             $query->whereBetween('created_at', [$startDateTime, $endDateTime])
-                  ->with('samples');
+                  ->with('distributedSamples');
         }]);
 
         // Fetch data
@@ -98,7 +98,7 @@ class MrPerformanceReportController extends Controller
             // Calculate Samples Distributed
             $totalSamples = 0;
             foreach ($user->doctorVisits as $visit) {
-                $totalSamples += $visit->samples->sum('quantity');
+                $totalSamples += $visit->distributedSamples->sum('quantity');
             }
             $user->samples_distributed = $totalSamples;
 

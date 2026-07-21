@@ -124,8 +124,65 @@
     </div>
 </div>
 
+<!-- Section 2: Trend Charts -->
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-    
+
+    <!-- Field Activity Trend (Visits & Orders) -->
+    <div class="lg:col-span-2">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden h-full">
+            <div class="p-6 border-b border-gray-50 flex justify-between items-center">
+                <h3 class="text-sm font-bold text-gray-900 uppercase tracking-wider flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-brand-500"></span>
+                    Field Activity Trend
+                </h3>
+                <span class="text-[11px] font-semibold text-gray-400">Daily visits &amp; orders</span>
+            </div>
+            <div class="p-6">
+                <div class="relative" style="height: 300px;">
+                    <canvas id="activityTrendChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sample Distribution -->
+    <div class="lg:col-span-1">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden h-full">
+            <div class="p-6 border-b border-gray-50 flex justify-between items-center">
+                <h3 class="text-sm font-bold text-gray-900 uppercase tracking-wider flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-teal-500"></span>
+                    Samples Distributed
+                </h3>
+            </div>
+            <div class="p-6">
+                <div class="relative" style="height: 300px;">
+                    <canvas id="sampleTrendChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Attendance Trend -->
+<div class="mb-8">
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="p-6 border-b border-gray-50 flex justify-between items-center">
+            <h3 class="text-sm font-bold text-gray-900 uppercase tracking-wider flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-green-500"></span>
+                Attendance Trend
+            </h3>
+            <span class="text-[11px] font-semibold text-gray-400">Present MRs per day</span>
+        </div>
+        <div class="p-6">
+            <div class="relative" style="height: 260px;">
+                <canvas id="attendanceTrendChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+
     <!-- Top Performing MRs -->
     <div class="lg:col-span-2">
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -220,3 +277,113 @@
 </div>
 
 @endsection
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+    (function () {
+        const chartData = @json($chart_data);
+
+        // Skip gracefully if Chart.js failed to load (e.g. offline).
+        if (typeof Chart === 'undefined') { return; }
+
+        Chart.defaults.font.family = "'Inter', ui-sans-serif, system-ui, sans-serif";
+        Chart.defaults.color = '#6b7280';
+
+        const gridColor = 'rgba(0,0,0,0.05)';
+        const baseScales = {
+            x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkipPadding: 12 } },
+            y: { beginAtZero: true, grid: { color: gridColor }, ticks: { precision: 0 } }
+        };
+
+        function makeGradient(ctx, area, hex) {
+            const g = ctx.createLinearGradient(0, area.top, 0, area.bottom);
+            g.addColorStop(0, hex + '55');
+            g.addColorStop(1, hex + '00');
+            return g;
+        }
+
+        // Field Activity Trend — Visits & Orders
+        const actCanvas = document.getElementById('activityTrendChart');
+        if (actCanvas) {
+            new Chart(actCanvas.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: chartData.labels,
+                    datasets: [
+                        {
+                            label: 'Doctor Visits',
+                            data: chartData.visits,
+                            borderColor: '#3b82f6',
+                            backgroundColor: (c) => c.chart.chartArea ? makeGradient(c.chart.ctx, c.chart.chartArea, '#3b82f6') : 'transparent',
+                            borderWidth: 2, tension: 0.35, fill: true,
+                            pointRadius: 2, pointHoverRadius: 5, pointBackgroundColor: '#3b82f6'
+                        },
+                        {
+                            label: 'Orders',
+                            data: chartData.orders,
+                            borderColor: '#8b5cf6',
+                            backgroundColor: (c) => c.chart.chartArea ? makeGradient(c.chart.ctx, c.chart.chartArea, '#8b5cf6') : 'transparent',
+                            borderWidth: 2, tension: 0.35, fill: true,
+                            pointRadius: 2, pointHoverRadius: 5, pointBackgroundColor: '#8b5cf6'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8, padding: 16 } } },
+                    scales: baseScales
+                }
+            });
+        }
+
+        // Sample Distribution — bar
+        const sampleCanvas = document.getElementById('sampleTrendChart');
+        if (sampleCanvas) {
+            new Chart(sampleCanvas.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: chartData.labels,
+                    datasets: [{
+                        label: 'Samples',
+                        data: chartData.samples,
+                        backgroundColor: '#14b8a6',
+                        hoverBackgroundColor: '#0d9488',
+                        borderRadius: 6, maxBarThickness: 26
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: baseScales
+                }
+            });
+        }
+
+        // Attendance Trend — present MRs
+        const attCanvas = document.getElementById('attendanceTrendChart');
+        if (attCanvas) {
+            new Chart(attCanvas.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: chartData.labels,
+                    datasets: [{
+                        label: 'Present MRs',
+                        data: chartData.present,
+                        borderColor: '#22c55e',
+                        backgroundColor: (c) => c.chart.chartArea ? makeGradient(c.chart.ctx, c.chart.chartArea, '#22c55e') : 'transparent',
+                        borderWidth: 2, tension: 0.35, fill: true,
+                        pointRadius: 2, pointHoverRadius: 5, pointBackgroundColor: '#22c55e'
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: baseScales
+                }
+            });
+        }
+    })();
+</script>
+@endpush

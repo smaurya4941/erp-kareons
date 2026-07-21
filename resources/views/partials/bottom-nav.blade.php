@@ -1,6 +1,8 @@
 @role('MR')
 @php
     $itemBase = 'flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors duration-200 relative';
+    $attendance = \App\Models\Attendance::where('user_id', auth()->id())->whereDate('date', \Carbon\Carbon::today())->first();
+    $canCreateVisit = $attendance && !$attendance->check_out_time;
 @endphp
 {{-- Mobile bottom navigation (MR only) — thumb-friendly, app-like --}}
 <nav class="md:hidden fixed bottom-0 inset-x-0 z-30 bg-white/90 backdrop-blur-lg border-t border-gray-100 shadow-[0_-4px_20px_-4px_rgba(0,0,0,0.08)]"
@@ -19,11 +21,19 @@
         </a>
 
         {{-- Center action: New Visit (elevated FAB) --}}
-        <a href="{{ route('mr.visits.create') }}" class="flex-1 flex justify-center items-start -mt-5" aria-label="New Visit">
-            <span class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-brand-600 to-brand-400 text-white flex items-center justify-center shadow-lg shadow-brand-500/40 ring-4 ring-white active:scale-95 transition-transform">
-                <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
-            </span>
-        </a>
+        @if($canCreateVisit)
+            <a href="{{ route('mr.visits.create') }}" class="flex-1 flex justify-center items-start -mt-5" aria-label="New Visit">
+                <span class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-brand-600 to-brand-400 text-white flex items-center justify-center shadow-lg shadow-brand-500/40 ring-4 ring-white active:scale-95 transition-transform">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
+                </span>
+            </a>
+        @else
+            <a href="#" class="flex-1 flex justify-center items-start -mt-5 cursor-not-allowed opacity-50" aria-label="New Visit Disabled" title="You must be checked in to create a visit">
+                <span class="w-14 h-14 rounded-2xl bg-gray-400 text-white flex items-center justify-center shadow-lg ring-4 ring-white">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
+                </span>
+            </a>
+        @endif
 
         {{-- Orders --}}
         <a href="{{ route('mr.orders.index') }}" class="{{ $itemBase }} {{ request()->routeIs('mr.orders.*') ? 'text-brand-600' : 'text-gray-400' }}">

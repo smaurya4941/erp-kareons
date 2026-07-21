@@ -3,7 +3,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Login - {{ config('app.name', 'KareOns ERP') }}</title>
+    <title>Login - {{ company_name() }}</title>
+    <link rel="icon" type="image/png" href="{{ favicon_url() }}">
     @vite(['resources/css/app.css'])
 </head>
 <body class="flex items-center justify-center min-h-screen bg-gray-50 relative overflow-hidden">
@@ -15,10 +16,10 @@
 
     <div class="w-full max-w-md p-10 bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white relative z-10 mx-4">
         <div class="mb-10 text-center">
-            <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-brand-600 to-brand-400 shadow-lg shadow-brand-500/30 mb-6">
-                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+            <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-white shadow-lg shadow-brand-500/20 mb-6 overflow-hidden">
+                <x-brand-logo class="w-16 h-16" />
             </div>
-            <h1 class="text-3xl font-black text-gray-900 tracking-tight">KareOns</h1>
+            <h1 class="text-3xl font-black text-gray-900 tracking-tight">{{ company_name() }}</h1>
             <p class="text-sm font-medium text-gray-500 mt-2">Sign in to your account</p>
         </div>
 

@@ -47,6 +47,20 @@ class DailyReportController extends Controller
         }
     }
 
+    public function show(DailyReport $report)
+    {
+        // MRs may only view their own reports.
+        abort_if($report->user_id !== auth()->id(), 403);
+
+        // Resolve attendance figures from the authoritative attendance record so
+        // older reports whose frozen snapshot stored stale/zero values still
+        // display correctly. Falls back to the snapshot when no record is found.
+        ['working_hours' => $workingHours, 'check_in' => $checkIn, 'check_out' => $checkOut]
+            = $report->resolvedAttendance();
+
+        return view('mr.reports.show', compact('report', 'workingHours', 'checkIn', 'checkOut'));
+    }
+
     public function store(SubmitDailyReportRequest $request)
     {
         $date = Carbon::today()->format('Y-m-d');

@@ -28,7 +28,11 @@ class User extends Authenticatable
         'email',
         'password',
         'photo',
+        'profile_photo_path',
         'mobile',
+        'phone',
+        'gender',
+        'dob',
         'address',
         'joining_date',
         'status',
@@ -55,6 +59,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'joining_date' => 'date',
+            'dob' => 'date',
         ];
     }
 
@@ -81,5 +86,17 @@ class User extends Authenticatable
     public function sampleAssignments()
     {
         return $this->hasMany(SampleAssignment::class);
+    }
+
+    /**
+     * Check if the user is currently on duty (clocked in today without clocking out).
+     */
+    public function isOnDuty(): bool
+    {
+        return $this->attendances()
+            ->whereDate('date', now()->toDateString())
+            ->whereNotNull('check_in_time')
+            ->whereNull('check_out_time')
+            ->exists();
     }
 }

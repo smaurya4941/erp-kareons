@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\User\StoreUserRequest;
 use App\Http\Requests\User\UpdateUserRequest;
+use App\Http\Requests\User\ResetPasswordRequest;
+use App\Helpers\ActivityLogger;
 use App\Models\User;
 use App\Services\UserService;
 use Illuminate\Http\Request;
@@ -62,6 +64,23 @@ class UserController extends Controller
     {
         $this->userService->updateUser($user, $request->validated());
         return redirect()->route('admin.users.index')->with('success', 'MR updated successfully.');
+    }
+
+    public function resetPassword(ResetPasswordRequest $request, User $user)
+    {
+        $this->userService->changePassword($user, $request->validated()['password']);
+
+        ActivityLogger::log(
+            'User Management',
+            'Reset Password',
+            "Admin reset the password for {$user->name} ({$user->employee_code}).",
+            $user,
+            null,
+            'Success',
+            'Warning'
+        );
+
+        return back()->with('success', "Password for {$user->name} has been reset successfully.");
     }
 
     public function toggleStatus(User $user)

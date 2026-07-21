@@ -1,87 +1,132 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="mb-6 flex justify-between items-center">
-    <div>
-        <h2 class="text-2xl font-bold text-gray-800">Daily Report: {{ $report->date->format('d M Y') }}</h2>
-        <p class="text-sm text-gray-500">Submitted by {{ $report->user->name }} on {{ $report->updated_at->format('d M Y, h:i A') }}</p>
-    </div>
-    <div class="flex space-x-2">
-        @if($report->status === 'Submitted')
-            <form action="{{ route('admin.daily-reports.review', $report) }}" method="POST">
-                @csrf
-                <x-button type="submit" variant="primary">Mark as Reviewed</x-button>
-            </form>
-        @else
-            <span class="inline-flex items-center px-4 py-2 bg-green-100 text-green-800 rounded-md font-bold text-sm">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                Reviewed
-            </span>
-        @endif
-        <x-button variant="secondary" onclick="window.location.href='{{ route('admin.daily-reports.index') }}'">Back</x-button>
+@php
+    $snapshot = $report->stats_snapshot ?? [];
+
+    $statusMap = [
+        'Draft'     => ['dot' => 'bg-gray-400',    'text' => 'text-gray-600'],
+        'Submitted' => ['dot' => 'bg-blue-500',    'text' => 'text-blue-700'],
+        'Reviewed'  => ['dot' => 'bg-emerald-500', 'text' => 'text-emerald-700'],
+    ];
+    $st = $statusMap[$report->status] ?? $statusMap['Draft'];
+
+    $mrName = $report->user->name ?? 'Unknown MR';
+    $initials = collect(explode(' ', trim($mrName)))->take(2)->map(fn ($p) => mb_substr($p, 0, 1))->implode('');
+
+    $stats = [
+        ['label' => 'Working Hours', 'value' => $workingHours,
+         'icon' => 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'],
+        ['label' => 'Doctor Visits', 'value' => $snapshot['visits']['total_visits'] ?? 0,
+         'icon' => 'M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 10-4-4 4 4 0 004 4z'],
+        ['label' => 'Products', 'value' => $snapshot['visits']['total_products_discussed'] ?? 0,
+         'icon' => 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10'],
+        ['label' => 'Samples Given', 'value' => $snapshot['visits']['total_samples_distributed'] ?? 0,
+         'icon' => 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4'],
+        ['label' => 'Orders', 'value' => $snapshot['orders']['total_orders'] ?? 0,
+         'icon' => 'M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z'],
+    ];
+@endphp
+
+{{-- ============ HEADER ============ --}}
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 sm:p-6 mb-5">
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div class="flex items-center gap-3.5">
+            <div class="flex-shrink-0 w-12 h-12 rounded-xl bg-gray-100 text-gray-600 flex items-center justify-center text-base font-bold">
+                {{ strtoupper($initials) ?: 'MR' }}
+            </div>
+            <div>
+                <div class="flex items-center gap-2 flex-wrap">
+                    <h2 class="text-lg sm:text-xl font-bold text-gray-900">{{ $mrName }}</h2>
+                    <span class="inline-flex items-center gap-1.5 text-xs font-semibold {{ $st['text'] }}">
+                        <span class="w-1.5 h-1.5 rounded-full {{ $st['dot'] }}"></span>{{ $report->status }}
+                    </span>
+                </div>
+                <p class="text-sm text-gray-500 mt-0.5">
+                    {{ $report->date->format('l, d M Y') }}
+                    <span class="text-gray-300">·</span>
+                    submitted {{ $report->updated_at->format('d M Y, h:i A') }}
+                </p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+            @if($checkIn || $checkOut)
+                <div class="hidden md:flex items-center gap-4 text-sm text-gray-500 pr-4 border-r border-gray-100">
+                    <span>In <strong class="font-semibold text-gray-700">{{ $checkIn ?? '—' }}</strong></span>
+                    <span>Out <strong class="font-semibold text-gray-700">{{ $checkOut ?? '—' }}</strong></span>
+                </div>
+            @endif
+
+            @if($report->status === 'Submitted')
+                <form action="{{ route('admin.daily-reports.review', $report) }}" method="POST">
+                    @csrf
+                    <x-button type="submit" variant="primary">Mark as Reviewed</x-button>
+                </form>
+            @else
+                <span class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-50 text-emerald-700 rounded-xl font-bold text-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    Reviewed
+                </span>
+            @endif
+            <x-button variant="secondary" onclick="window.location.href='{{ route('admin.daily-reports.index') }}'">Back</x-button>
+        </div>
     </div>
 </div>
 
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-    <!-- Attendance Summary -->
-    <x-card>
-        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4 border-b pb-2">Attendance Summary</h3>
-        <div class="grid grid-cols-3 gap-4 text-center">
-            <div>
-                <p class="text-xs text-gray-500 uppercase">Check In</p>
-                <p class="font-bold text-gray-800">{{ $report->stats_snapshot['attendance']['check_in'] ?? 'N/A' }}</p>
+{{-- ============ STAT CARDS ============ --}}
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-5">
+    @foreach($stats as $s)
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hover:border-gray-200 transition">
+            <div class="flex items-center gap-3">
+                <span class="w-9 h-9 rounded-lg bg-gray-50 text-gray-500 flex items-center justify-center">
+                    <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $s['icon'] }}"/></svg>
+                </span>
+                <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">{{ $s['label'] }}</p>
             </div>
-            <div>
-                <p class="text-xs text-gray-500 uppercase">Check Out</p>
-                <p class="font-bold text-gray-800">{{ $report->stats_snapshot['attendance']['check_out'] ?? 'N/A' }}</p>
-            </div>
-            <div>
-                <p class="text-xs text-gray-500 uppercase">Working Hours</p>
-                <p class="font-bold text-blue-600">{{ $report->stats_snapshot['attendance']['working_hours'] ?? 'N/A' }}</p>
-            </div>
+            <p class="text-2xl font-bold text-gray-900 mt-3 leading-none tracking-tight">{{ $s['value'] }}</p>
         </div>
-    </x-card>
-
-    <!-- Daily Statistics -->
-    <x-card>
-        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4 border-b pb-2">Field Activity Stats</h3>
-        <div class="grid grid-cols-4 gap-4 text-center">
-            <div>
-                <p class="text-xs text-gray-500 uppercase">Visits</p>
-                <p class="font-bold text-2xl text-gray-800">{{ $report->stats_snapshot['visits']['total_visits'] ?? 0 }}</p>
-            </div>
-            <div>
-                <p class="text-xs text-gray-500 uppercase">Products</p>
-                <p class="font-bold text-2xl text-gray-800">{{ $report->stats_snapshot['visits']['total_products_discussed'] ?? 0 }}</p>
-            </div>
-            <div>
-                <p class="text-xs text-gray-500 uppercase">Samples</p>
-                <p class="font-bold text-2xl text-gray-800">{{ $report->stats_snapshot['visits']['total_samples_distributed'] ?? 0 }}</p>
-            </div>
-            <div>
-                <p class="text-xs text-gray-500 uppercase">Orders</p>
-                <p class="font-bold text-2xl text-gray-800">{{ $report->stats_snapshot['orders']['total_orders'] ?? 0 }}</p>
-            </div>
-        </div>
-    </x-card>
+    @endforeach
 </div>
 
-<div class="space-y-6">
-    <x-card>
-        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4 border-b pb-2">Today's Summary</h3>
-        <p class="text-gray-700 whitespace-pre-wrap leading-relaxed">{{ $report->today_summary }}</p>
-    </x-card>
-
-    @if($report->problems_faced)
-    <x-card>
-        <h3 class="text-sm font-semibold text-red-500 uppercase tracking-wider mb-4 border-b border-red-100 pb-2">Problems Faced</h3>
-        <p class="text-red-700 whitespace-pre-wrap leading-relaxed">{{ $report->problems_faced }}</p>
-    </x-card>
+{{-- ============ NOTES (summary / problems / plan) ============ --}}
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
+    @if($report->today_summary)
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 lg:col-span-2">
+        <h3 class="text-sm font-bold text-gray-800 mb-2">Today's Summary</h3>
+        <p class="text-sm text-gray-600 whitespace-pre-wrap leading-relaxed">{{ $report->today_summary }}</p>
+    </div>
     @endif
 
-    <x-card>
-        <h3 class="text-sm font-semibold text-blue-500 uppercase tracking-wider mb-4 border-b border-blue-100 pb-2">Tomorrow's Plan</h3>
-        <p class="text-blue-700 whitespace-pre-wrap leading-relaxed">{{ $report->tomorrow_plan }}</p>
-    </x-card>
+    @if($report->problems_faced)
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+        <div class="flex items-start gap-3">
+            <span class="flex-shrink-0 w-8 h-8 rounded-lg bg-rose-50 text-rose-500 flex items-center justify-center">
+                <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+            </span>
+            <div>
+                <h3 class="text-sm font-bold text-gray-800">Problems Faced</h3>
+                <p class="text-sm text-gray-600 whitespace-pre-wrap leading-relaxed mt-1">{{ $report->problems_faced }}</p>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    @if($report->tomorrow_plan)
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+        <div class="flex items-start gap-3">
+            <span class="flex-shrink-0 w-8 h-8 rounded-lg bg-blue-50 text-blue-500 flex items-center justify-center">
+                <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+            </span>
+            <div>
+                <h3 class="text-sm font-bold text-gray-800">Tomorrow's Plan</h3>
+                <p class="text-sm text-gray-600 whitespace-pre-wrap leading-relaxed mt-1">{{ $report->tomorrow_plan }}</p>
+            </div>
+        </div>
+    </div>
+    @endif
 </div>
+
+{{-- ============ DETAILS ============ --}}
+@include('partials.report-details', ['snapshot' => $snapshot])
 @endsection

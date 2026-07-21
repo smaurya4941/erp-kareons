@@ -18,6 +18,14 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [\App\Http\Controllers\Web\ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [\App\Http\Controllers\Web\ProfileController::class, 'update'])->name('profile.update');
     Route::put('/profile/password', [\App\Http\Controllers\Web\ProfileController::class, 'updatePassword'])->name('profile.password');
+
+    // Notifications (shared by Admin & MR)
+    Route::prefix('notifications')->name('notifications.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Web\NotificationController::class, 'index'])->name('index');
+        Route::get('/feed', [\App\Http\Controllers\Web\NotificationController::class, 'feed'])->name('feed');
+        Route::post('/read-all', [\App\Http\Controllers\Web\NotificationController::class, 'readAll'])->name('read-all');
+        Route::get('/{id}/read', [\App\Http\Controllers\Web\NotificationController::class, 'read'])->name('read');
+    });
     
     // Admin Routes
     Route::middleware(['role:Admin'])->prefix('admin')->name('admin.')->group(function () {
@@ -25,6 +33,7 @@ Route::middleware(['auth'])->group(function () {
         
         // User Management
         Route::post('users/{user}/toggle-status', [UserController::class, 'toggleStatus'])->name('users.toggle-status');
+        Route::post('users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('users.reset-password');
         Route::resource('users', UserController::class);
 
         // Product Management
@@ -90,6 +99,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/reports', [\App\Http\Controllers\Web\Mr\DailyReportController::class, 'index'])->name('reports.index');
         Route::get('/reports/create', [\App\Http\Controllers\Web\Mr\DailyReportController::class, 'createOrEdit'])->name('reports.create');
         Route::post('/reports', [\App\Http\Controllers\Web\Mr\DailyReportController::class, 'store'])->name('reports.store');
+        Route::get('/reports/{report}', [\App\Http\Controllers\Web\Mr\DailyReportController::class, 'show'])->name('reports.show');
 
         // MR Samples
         Route::get('/samples', [\App\Http\Controllers\Web\Mr\SampleController::class, 'index'])->name('samples.index');

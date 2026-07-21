@@ -146,7 +146,7 @@ Dashboard becomes professional.
 
 Maps
 
-Google Maps API
+OpenStreetMap (Leaflet)
 
 Show
 
@@ -492,7 +492,7 @@ CSS Tailwind CSS
 JS Alpine.js
 Charts ApexCharts
 Tables Yajra DataTables
-Maps Google Maps API
+Maps OpenStreetMap (Leaflet)
 Storage Laravel Storage (S3-ready)
 Queue Laravel Queue
 Cache File Cache (Redis-ready)

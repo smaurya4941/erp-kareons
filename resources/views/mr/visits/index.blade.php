@@ -7,9 +7,15 @@
         <p class="text-sm text-gray-500">History of all your field meetings and discussions.</p>
     </div>
     <div class="hidden sm:block">
-        <x-button variant="primary" onclick="window.location.href='{{ route('mr.visits.create') }}'">
-            + New Doctor Visit
-        </x-button>
+        @if($attendance && !$attendance->check_out_time)
+            <x-button variant="primary" onclick="window.location.href='{{ route('mr.visits.create') }}'">
+                + New Doctor Visit
+            </x-button>
+        @else
+            <x-button variant="primary" class="opacity-50 cursor-not-allowed" title="You must be checked in to create a doctor visit." disabled>
+                + New Doctor Visit
+            </x-button>
+        @endif
     </div>
 </div>
 

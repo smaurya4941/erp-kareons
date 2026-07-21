@@ -20,6 +20,58 @@ if (!function_exists('setting')) {
     }
 }
 
+if (!function_exists('company_name')) {
+    /**
+     * Get the configured company/brand name.
+     */
+    function company_name(): string
+    {
+        return setting('company_name', config('app.name', 'KareOns'));
+    }
+}
+
+if (!function_exists('company_logo_url')) {
+    /**
+     * Resolve the brand logo URL.
+     * Uses the admin-uploaded logo if set, otherwise the bundled default.
+     */
+    function company_logo_url(): string
+    {
+        $logo = setting('company_logo');
+
+        try {
+            if ($logo && \Illuminate\Support\Facades\Storage::disk('public')->exists($logo)) {
+                return asset('storage/' . $logo);
+            }
+        } catch (\Exception $e) {
+            // ignore and fall through to default
+        }
+
+        return asset('images/logo.png');
+    }
+}
+
+if (!function_exists('favicon_url')) {
+    /**
+     * Resolve the favicon URL.
+     * Uses the admin-uploaded favicon, then the logo, then the bundled default.
+     */
+    function favicon_url(): string
+    {
+        $favicon = setting('favicon');
+
+        try {
+            if ($favicon && \Illuminate\Support\Facades\Storage::disk('public')->exists($favicon)) {
+                return asset('storage/' . $favicon);
+            }
+        } catch (\Exception $e) {
+            // ignore and fall through
+        }
+
+        return company_logo_url();
+    }
+}
+
 if (!function_exists('formatCurrency')) {
     /**
      * Format a number into currency.

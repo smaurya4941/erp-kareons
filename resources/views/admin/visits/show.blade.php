@@ -175,16 +175,9 @@
             <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4 border-b pb-2">Location Evidence</h3>
             
             @if($visit->lat && $visit->lng)
-                <!-- Map -->
+                <!-- Map (OpenStreetMap via Leaflet) -->
                 <div class="mb-4 rounded-lg overflow-hidden border">
-                    <iframe 
-                        width="100%" 
-                        height="250" 
-                        frameborder="0" 
-                        style="border:0;" 
-                        src="https://maps.google.com/maps?q={{ $visit->lat }},{{ $visit->lng }}&hl=en&z=15&output=embed" 
-                        allowfullscreen>
-                    </iframe>
+                    <div id="visit-map" style="height: 250px; width: 100%;" data-lat="{{ $visit->lat }}" data-lng="{{ $visit->lng }}"></div>
                 </div>
 
                 <div class="space-y-3 text-sm">
@@ -211,3 +204,28 @@
     </div>
 </div>
 @endsection
+
+@push('styles')
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+@endpush
+
+@push('scripts')
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJ9nSWkHf1jw3lNpQEqM/4/HXNZ2E=" crossorigin=""></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var el = document.getElementById('visit-map');
+            if (!el) return;
+            var lat = parseFloat(el.dataset.lat);
+            var lng = parseFloat(el.dataset.lng);
+            var zoom = {{ (int) (setting('map_zoom_level', 15) ?: 15) }};
+            var map = L.map(el).setView([lat, lng], zoom);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+            L.marker([lat, lng]).addTo(map);
+        });
+    </script>
+@endpush

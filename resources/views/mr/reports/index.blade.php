@@ -1,15 +1,9 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="mb-6 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-    <div>
-        <h2 class="text-xl sm:text-2xl font-bold text-gray-800">My Daily Reports</h2>
-        <p class="text-sm text-gray-500">History of your end-of-day reports.</p>
-    </div>
-    <!-- The "End Day" button is conditionally generated here if needed, but normally accessed via Dashboard -->
-    <x-button onclick="window.location.href='{{ route('mr.reports.create') }}'" variant="primary" class="w-full sm:w-auto">
-        End Day / Draft Today's Report
-    </x-button>
+<div class="mb-6">
+    <h2 class="text-xl sm:text-2xl font-bold text-gray-800">My Daily Reports</h2>
+    <p class="text-sm text-gray-500">Your reports are prepared automatically each day when you check out.</p>
 </div>
 
 @if(session('error'))
@@ -31,7 +25,7 @@
 {{-- Mobile: card list --}}
 <div class="space-y-3 md:hidden">
     @forelse($reports as $report)
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+        <a href="{{ route('mr.reports.show', $report) }}" class="block bg-white rounded-2xl shadow-sm border border-gray-100 p-4 active:scale-[0.99] transition-transform">
             <div class="flex items-center justify-between gap-2">
                 <div>
                     <p class="font-bold text-gray-900">{{ $report->date->format('d M Y') }}</p>
@@ -53,12 +47,10 @@
                     <p class="text-sm font-semibold text-gray-800">{{ $report->stats_snapshot['attendance']['working_hours'] ?? 'N/A' }}</p>
                 </div>
             </div>
-            @if($report->status === 'Draft' && $report->date->format('Y-m-d') === \Carbon\Carbon::today()->format('Y-m-d'))
-                <a href="{{ route('mr.reports.create') }}" class="mt-3 block text-center text-xs font-semibold text-brand-600 bg-brand-50 rounded-lg py-2">Complete Draft →</a>
-            @endif
-        </div>
+            <p class="mt-3 text-center text-xs font-semibold text-brand-600 bg-brand-50 rounded-lg py-2">View Full Report →</p>
+        </a>
     @empty
-        <div class="bg-white rounded-2xl border border-gray-100 p-8 text-center text-gray-500">You haven't submitted any daily reports yet.</div>
+        <div class="bg-white rounded-2xl border border-gray-100 p-8 text-center text-gray-500">No daily reports yet. Your first report will appear here after you check out.</div>
     @endforelse
     <div class="pt-2">{{ $reports->links() }}</div>
 </div>
@@ -73,6 +65,7 @@
                     <th class="px-4 py-3 text-center">Orders</th>
                     <th class="px-4 py-3 text-center">Working Hrs</th>
                     <th class="px-4 py-3 text-center">Status</th>
+                    <th class="px-4 py-3 text-right">Action</th>
                 </tr>
             </thead>
             <tbody class="bg-white divide-y">
@@ -92,21 +85,21 @@
                         {{ $report->stats_snapshot['attendance']['working_hours'] ?? 'N/A' }}
                     </td>
                     <td class="px-4 py-3 text-center">
-                        <span class="px-2 py-1 text-xs font-bold rounded-full 
-                            {{ $report->status === 'Draft' ? 'bg-gray-100 text-gray-700' : 
+                        <span class="px-2 py-1 text-xs font-bold rounded-full
+                            {{ $report->status === 'Draft' ? 'bg-gray-100 text-gray-700' :
                                ($report->status === 'Reviewed' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700') }}">
                             {{ $report->status }}
                         </span>
-                        @if($report->status === 'Draft' && $report->date->format('Y-m-d') === \Carbon\Carbon::today()->format('Y-m-d'))
-                            <a href="{{ route('mr.reports.create') }}" class="block mt-1 text-xs text-blue-600 hover:underline">Complete Draft</a>
-                        @endif
+                    </td>
+                    <td class="px-4 py-3 text-right">
+                        <a href="{{ route('mr.reports.show', $report) }}" class="text-sm font-semibold text-brand-600 hover:underline">View</a>
                     </td>
                 </tr>
                 @endforeach
-                
+
                 @if($reports->isEmpty())
                 <tr>
-                    <td colspan="5" class="px-4 py-8 text-center text-gray-500">You haven't submitted any daily reports yet.</td>
+                    <td colspan="6" class="px-4 py-8 text-center text-gray-500">No daily reports yet. Your first report will appear here after you check out.</td>
                 </tr>
                 @endif
             </tbody>

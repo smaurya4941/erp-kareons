@@ -5,11 +5,16 @@ namespace App\Services;
 use App\Models\SampleAssignment;
 use App\Models\SampleTransaction;
 use App\Models\Product;
+use App\Notifications\SamplesAssignedNotification;
 use Illuminate\Support\Facades\DB;
 use Exception;
 
 class SampleAssignmentService extends BaseService
 {
+    public function __construct(protected NotificationService $notificationService)
+    {
+    }
+
     /**
      * Assign or increase multiple products for an MR.
      *
@@ -67,15 +72,30 @@ class SampleAssignmentService extends BaseService
                 ]);
             }
         });
+
+        // Notify the MR of their new samples (after commit; non-blocking).
+        $this->notificationService->notifyUser(
+            $userId,
+            new SamplesAssignedNotification(count($products), (int) array_sum(array_column($products, 'quantity')))
+        );
     }
 
     /**
-     * Reduce, return, or adjust samples for an MR.
+     * Reduce, return, adjust, or distribute samples for an MR.
+     *
+     * Distribution ('distributed') records stock handed to doctors during visits:
+     * it increments distributed_quantity while leaving assigned_quantity intact,
+     * so the "Total Assigned" figure is preserved and "Distributed" reflects usage.
+     *
+     * Stock removals ('reduce', 'return', 'adjustment') deduct from assigned_quantity,
+     * as those permanently take stock back out of the MR's possession.
+     *
+     * In both cases Remaining = assigned_quantity - distributed_quantity decreases.
      *
      * @param int $userId
      * @param int $productId
-     * @param string $actionType ('reduce', 'return', 'adjustment')
-     * @param int $quantity (Must be positive integer, negated internally)
+     * @param string $actionType ('distributed', 'reduce', 'return', 'adjustment')
+     * @param int $quantity (Must be positive integer)
      * @param string $reason
      * @param int $adminId
      * @return SampleAssignment
@@ -95,19 +115,24 @@ class SampleAssignmentService extends BaseService
 
             // Validation: Ensure remaining quantity won't become negative
             if ($assignment->remaining_quantity < $quantity) {
-                throw new Exception("Cannot reduce by {$quantity}. Only {$assignment->remaining_quantity} samples are available.");
+                throw new Exception("Cannot process {$quantity}. Only {$assignment->remaining_quantity} samples are available.");
             }
 
-            // Deduct from assigned_quantity (since Remaining = Assigned - Distributed)
-            $assignment->assigned_quantity -= $quantity;
+            if ($actionType === 'distributed') {
+                // Track the units handed out; assigned stock stays untouched.
+                $assignment->distributed_quantity += $quantity;
+            } else {
+                // Stock is taken back out of the MR's allocation entirely.
+                $assignment->assigned_quantity -= $quantity;
+            }
             $assignment->save();
 
-            // Log the negative transaction
+            // Log the transaction (negative quantity = stock leaving the MR).
             SampleTransaction::create([
                 'user_id' => $userId,
                 'product_id' => $productId,
                 'type' => $actionType,
-                'quantity' => -$quantity, // Negative quantity
+                'quantity' => -$quantity,
                 'reason' => $reason,
                 'performed_by' => $adminId,
             ]);

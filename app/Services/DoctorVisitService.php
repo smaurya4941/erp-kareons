@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Models\Attendance;
 use App\Models\DoctorVisit;
 use App\Models\Order;
+use App\Models\User;
+use App\Notifications\OrderPlacedNotification;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\DB;
@@ -12,10 +14,14 @@ use Illuminate\Support\Facades\DB;
 class DoctorVisitService extends BaseService
 {
     protected SampleAssignmentService $sampleAssignmentService;
+    protected NotificationService $notificationService;
 
-    public function __construct(SampleAssignmentService $sampleAssignmentService)
-    {
+    public function __construct(
+        SampleAssignmentService $sampleAssignmentService,
+        NotificationService $notificationService
+    ) {
         $this->sampleAssignmentService = $sampleAssignmentService;
+        $this->notificationService = $notificationService;
     }
 
     /**
@@ -36,9 +42,15 @@ class DoctorVisitService extends BaseService
         if (!$attendance) {
             throw new Exception("You must check in for attendance before creating a doctor visit.");
         }
+        
+        if ($attendance->check_out_time !== null) {
+            throw new Exception("You have already checked out today. You cannot create new doctor visits.");
+        }
 
-        return DB::transaction(function () use ($userId, $data, $today, $now) {
-            
+        $createdOrder = null;
+
+        $visit = DB::transaction(function () use ($userId, $data, $today, $now, &$createdOrder) {
+
             // 1. Create Visit Record
             $visit = DoctorVisit::create([
                 'user_id' => $userId,
@@ -119,10 +131,22 @@ class DoctorVisitService extends BaseService
                         // Prices left as 0 default per the Phase 5 spec (simplified order taking)
                     ]);
                 }
+
+                $createdOrder = $order;
             }
 
             return $visit;
         });
+
+        // Notify admins of a freshly collected order (after commit; non-blocking).
+        if ($createdOrder) {
+            $mrName = User::find($userId)?->name ?? 'An MR';
+            $this->notificationService->notifyAdmins(
+                new OrderPlacedNotification($createdOrder->load('items'), $mrName)
+            );
+        }
+
+        return $visit;
     }
 
     /**

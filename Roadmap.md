@@ -13,7 +13,7 @@ Install Spatie Permission
 Configure Storage
 Configure Queue
 Configure Mail
-Configure Google Maps API
+Configure OpenStreetMap (Leaflet) — no API key required
 Create common layouts
 Create sidebar
 Create top navbar
@@ -460,7 +460,7 @@ Password
 
 General Settings
 
-Google Maps Key
+OpenStreetMap (Leaflet)
 
 System Settings
 

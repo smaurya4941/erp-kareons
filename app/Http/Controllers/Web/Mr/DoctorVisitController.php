@@ -27,8 +27,12 @@ class DoctorVisitController extends Controller
                              ->orderBy('date', 'desc')
                              ->orderBy('time', 'desc')
                              ->paginate(15);
+                             
+        $attendance = \App\Models\Attendance::where('user_id', auth()->id())
+                        ->whereDate('date', \Carbon\Carbon::today())
+                        ->first();
                                  
-        return view('mr.visits.index', compact('visits'));
+        return view('mr.visits.index', compact('visits', 'attendance'));
     }
 
     /**
@@ -36,6 +40,18 @@ class DoctorVisitController extends Controller
      */
     public function create()
     {
+        $attendance = \App\Models\Attendance::where('user_id', auth()->id())
+                        ->whereDate('date', \Carbon\Carbon::today())
+                        ->first();
+                        
+        if (!$attendance) {
+            return redirect()->route('mr.dashboard')->with('error', 'You must check in for attendance before creating a doctor visit.');
+        }
+        
+        if ($attendance->check_out_time !== null) {
+            return redirect()->route('mr.dashboard')->with('error', 'You have already checked out today. You cannot create new doctor visits.');
+        }
+
         $products = \App\Models\Product::where('status', true)->get();
         
         $assignedSamples = \App\Models\SampleAssignment::with('product')

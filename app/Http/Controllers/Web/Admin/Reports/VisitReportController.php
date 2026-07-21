@@ -14,7 +14,7 @@ class VisitReportController extends Controller
 {
     public function index(Request $request, ExportService $exportService)
     {
-        $query = DoctorVisit::with(['user', 'products.product', 'samples.product', 'order']);
+        $query = DoctorVisit::with(['user', 'discussedProducts.product', 'distributedSamples.product', 'order']);
 
         // Apply Search
         if ($request->filled('search')) {
@@ -74,8 +74,8 @@ class VisitReportController extends Controller
                 'Doctor' => 'doctor_name',
                 'Clinic' => 'clinic_name',
                 'Area' => 'area',
-                'Products Discussed' => function($row) { return $row->products->count(); },
-                'Samples Given' => function($row) { return $row->samples->sum('quantity'); },
+                'Products Discussed' => function($row) { return $row->discussedProducts->count(); },
+                'Samples Given' => function($row) { return $row->distributedSamples->sum('quantity'); },
                 'Order Placed?' => function($row) { return $row->order ? 'Yes' : 'No'; },
             ];
             return $exportService->downloadCsv($data, $columns, 'Visit_Report_' . Carbon::now()->format('Ymd'));

@@ -73,4 +73,36 @@
         </div>
     </form>
 </x-card>
+
+<x-card class="max-w-3xl mt-6" x-data="{ open: {{ $errors->has('password') ? 'true' : 'false' }} }">
+    <div class="flex items-start justify-between">
+        <div>
+            <h3 class="text-lg font-bold text-gray-800">Reset Password</h3>
+            <p class="text-sm text-gray-500">Set a new password for this user. They will need to use it on their next login.</p>
+        </div>
+        <x-button type="button" variant="secondary" x-show="!open" @click="open = true">Reset Password</x-button>
+    </div>
+
+    <div x-show="open" x-cloak class="mt-6 border-t border-gray-100 pt-6">
+        <form action="{{ route('admin.users.reset-password', $user) }}" method="POST">
+            @csrf
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">New Password *</label>
+                    <x-input type="password" name="password" autocomplete="new-password" required />
+                    @error('password') <span class="text-xs text-red-500">{{ $message }}</span> @enderror
+                    <p class="text-xs text-gray-400 mt-1">Minimum 8 characters, including letters and numbers.</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Confirm Password *</label>
+                    <x-input type="password" name="password_confirmation" autocomplete="new-password" required />
+                </div>
+            </div>
+            <div class="flex justify-end space-x-3">
+                <x-button type="button" variant="secondary" @click="open = false">Cancel</x-button>
+                <x-button type="submit" variant="primary">Update Password</x-button>
+            </div>
+        </form>
+    </div>
+</x-card>
 @endsection

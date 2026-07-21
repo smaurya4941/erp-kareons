@@ -60,8 +60,8 @@
                         <div class="text-xs text-gray-500">{{ $visit->clinic_name }}</div>
                     </td>
                     <td class="px-4 py-3 text-gray-600">{{ $visit->area }}</td>
-                    <td class="px-4 py-3 text-center font-bold text-blue-600">{{ $visit->products->count() }}</td>
-                    <td class="px-4 py-3 text-center font-bold text-teal-600">{{ $visit->samples->sum('quantity') }}</td>
+                    <td class="px-4 py-3 text-center font-bold text-blue-600">{{ $visit->discussedProducts->count() }}</td>
+                    <td class="px-4 py-3 text-center font-bold text-teal-600">{{ $visit->distributedSamples->sum('quantity') }}</td>
                     <td class="px-4 py-3 text-center">
                         @if($visit->order)
                             <span class="px-2 py-1 font-semibold leading-tight rounded-full text-xs text-green-700 bg-green-100">Order Placed</span>

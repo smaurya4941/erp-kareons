@@ -83,15 +83,9 @@
                             <span>{{ $attendance->check_in_address ?: 'Not provided' }}</span>
                         </div>
                     </div>
-                    <!-- Google Map Iframe for Check In -->
-                    <iframe 
-                        width="100%" 
-                        height="200" 
-                        frameborder="0" 
-                        style="border:0; border-radius: 0.5rem;" 
-                        src="https://maps.google.com/maps?q={{ $attendance->check_in_lat }},{{ $attendance->check_in_lng }}&hl=en&z=15&output=embed" 
-                        allowfullscreen>
-                    </iframe>
+                    <!-- OpenStreetMap (Leaflet) for Check In -->
+                    <div class="attendance-map" style="height: 200px; width: 100%; border-radius: 0.5rem;"
+                        data-lat="{{ $attendance->check_in_lat }}" data-lng="{{ $attendance->check_in_lng }}"></div>
                 @else
                     <div class="text-sm text-gray-500 italic">Location data not available.</div>
                 @endif
@@ -154,15 +148,9 @@
                             <span>{{ $attendance->check_out_address ?: 'Not provided' }}</span>
                         </div>
                     </div>
-                    <!-- Google Map Iframe for Check Out -->
-                    <iframe 
-                        width="100%" 
-                        height="200" 
-                        frameborder="0" 
-                        style="border:0; border-radius: 0.5rem;" 
-                        src="https://maps.google.com/maps?q={{ $attendance->check_out_lat }},{{ $attendance->check_out_lng }}&hl=en&z=15&output=embed" 
-                        allowfullscreen>
-                    </iframe>
+                    <!-- OpenStreetMap (Leaflet) for Check Out -->
+                    <div class="attendance-map" style="height: 200px; width: 100%; border-radius: 0.5rem;"
+                        data-lat="{{ $attendance->check_out_lat }}" data-lng="{{ $attendance->check_out_lng }}"></div>
                 @else
                     <div class="text-sm text-gray-500 italic">Location data not available.</div>
                 @endif
@@ -191,3 +179,29 @@
     </x-card>
 </div>
 @endsection
+
+@push('styles')
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+@endpush
+
+@push('scripts')
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJ9nSWkHf1jw3lNpQEqM/4/HXNZ2E=" crossorigin=""></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var zoom = {{ (int) (setting('map_zoom_level', 15) ?: 15) }};
+            document.querySelectorAll('.attendance-map').forEach(function (el) {
+                var lat = parseFloat(el.dataset.lat);
+                var lng = parseFloat(el.dataset.lng);
+                if (isNaN(lat) || isNaN(lng)) return;
+                var map = L.map(el).setView([lat, lng], zoom);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                }).addTo(map);
+                L.marker([lat, lng]).addTo(map);
+            });
+        });
+    </script>
+@endpush

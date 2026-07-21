@@ -69,6 +69,72 @@ class AdminDashboardService
     }
 
     /**
+     * Build daily trend data for the dashboard charts.
+     *
+     * Returns a per-day series (labels + datasets) for doctor visits, orders,
+     * samples distributed and present MRs. To keep the trend meaningful even
+     * for single-day filters (Today / Yesterday), the window is expanded to a
+     * minimum of 7 days ending on $end, and capped at 31 days to keep the
+     * chart readable and the queries light.
+     */
+    public function getChartData(Carbon $start, Carbon $end)
+    {
+        $rangeEnd = $end->copy()->startOfDay();
+        $rangeStart = $start->copy()->startOfDay();
+
+        // Ensure a readable window: at least 7 days, at most 31.
+        if ($rangeStart->diffInDays($rangeEnd) < 6) {
+            $rangeStart = $rangeEnd->copy()->subDays(6);
+        } elseif ($rangeStart->diffInDays($rangeEnd) > 30) {
+            $rangeStart = $rangeEnd->copy()->subDays(30);
+        }
+
+        $periodStart = $rangeStart->copy()->startOfDay();
+        $periodEnd = $rangeEnd->copy()->endOfDay();
+
+        // Pre-aggregate each metric grouped by day to avoid N queries.
+        $visitsByDay = DoctorVisit::selectRaw('DATE(created_at) as d, COUNT(*) as c')
+            ->whereBetween('created_at', [$periodStart, $periodEnd])
+            ->groupBy('d')->pluck('c', 'd');
+
+        $ordersByDay = Order::selectRaw('DATE(created_at) as d, COUNT(*) as c')
+            ->whereBetween('created_at', [$periodStart, $periodEnd])
+            ->groupBy('d')->pluck('c', 'd');
+
+        $samplesByDay = DoctorVisitSample::selectRaw('DATE(doctor_visits.created_at) as d, SUM(doctor_visit_samples.quantity) as c')
+            ->join('doctor_visits', 'doctor_visits.id', '=', 'doctor_visit_samples.doctor_visit_id')
+            ->whereBetween('doctor_visits.created_at', [$periodStart, $periodEnd])
+            ->groupBy('d')->pluck('c', 'd');
+
+        $presentByDay = Attendance::selectRaw('date as d, COUNT(DISTINCT user_id) as c')
+            ->whereBetween('date', [$periodStart->format('Y-m-d'), $periodEnd->format('Y-m-d')])
+            ->groupBy('d')->pluck('c', 'd');
+
+        $labels = [];
+        $visits = [];
+        $orders = [];
+        $samples = [];
+        $present = [];
+
+        for ($day = $periodStart->copy(); $day->lte($periodEnd); $day->addDay()) {
+            $key = $day->format('Y-m-d');
+            $labels[] = $day->format('d M');
+            $visits[] = (int) ($visitsByDay[$key] ?? 0);
+            $orders[] = (int) ($ordersByDay[$key] ?? 0);
+            $samples[] = (int) ($samplesByDay[$key] ?? 0);
+            $present[] = (int) ($presentByDay[$key] ?? 0);
+        }
+
+        return [
+            'labels' => $labels,
+            'visits' => $visits,
+            'orders' => $orders,
+            'samples' => $samples,
+            'present' => $present,
+        ];
+    }
+
+    /**
      * Recent Activities Timeline
      */
     public function getRecentActivities(Carbon $start, Carbon $end)

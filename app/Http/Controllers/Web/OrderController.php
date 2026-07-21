@@ -6,12 +6,18 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Order\UpdateOrderStatusRequest;
 use App\Models\Order;
 use App\Models\User;
+use App\Notifications\OrderStatusUpdatedNotification;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
+    public function __construct(protected NotificationService $notificationService)
+    {
+    }
+
     public function index(Request $request)
     {
         $query = Order::with(['user', 'items.product']);
@@ -67,18 +73,29 @@ class OrderController extends Controller
     public function updateStatus(UpdateOrderStatusRequest $request, Order $order)
     {
         try {
-            DB::transaction(function () use ($request, $order) {
-                $newStatus = $request->validated('status');
-                
+            $newStatus = $request->validated('status');
+            $statusChanged = false;
+
+            DB::transaction(function () use ($newStatus, $order, &$statusChanged) {
                 if ($order->status !== $newStatus) {
                     $order->update(['status' => $newStatus]);
-                    
+
                     $order->statusHistories()->create([
                         'changed_by_user_id' => auth()->id(),
                         'status' => $newStatus,
                     ]);
+
+                    $statusChanged = true;
                 }
             });
+
+            // Notify the owning MR that their order moved forward (non-blocking).
+            if ($statusChanged && $order->user_id) {
+                $this->notificationService->notifyUser(
+                    $order->user_id,
+                    new OrderStatusUpdatedNotification($order, $newStatus)
+                );
+            }
 
             return back()->with('success', 'Order status updated successfully.');
         } catch (\Exception $e) {

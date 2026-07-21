@@ -16,7 +16,10 @@ return new class extends Migration
             $table->date('date'); // Ensure one record per user per day
             
             // Check-in Info
-            $table->timestamp('check_in_time');
+            // NOTE: use datetime (not timestamp). A NOT NULL timestamp column implicitly
+            // gets "ON UPDATE CURRENT_TIMESTAMP" under MySQL's default
+            // explicit_defaults_for_timestamp=0, which would reset check_in_time on every update.
+            $table->dateTime('check_in_time');
             $table->string('check_in_selfie');
             $table->decimal('check_in_lat', 10, 8)->nullable();
             $table->decimal('check_in_lng', 11, 8)->nullable();
@@ -25,7 +28,7 @@ return new class extends Migration
             $table->json('check_in_device_info')->nullable();
             
             // Check-out Info (Nullable until check out)
-            $table->timestamp('check_out_time')->nullable();
+            $table->dateTime('check_out_time')->nullable();
             $table->string('check_out_selfie')->nullable();
             $table->decimal('check_out_lat', 10, 8)->nullable();
             $table->decimal('check_out_lng', 11, 8)->nullable();

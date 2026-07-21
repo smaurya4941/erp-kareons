@@ -7,8 +7,11 @@
             <h2 class="text-xl sm:text-2xl font-bold text-gray-800">New Doctor Visit</h2>
             <p class="text-sm text-gray-500">Step <span x-text="step"></span> of 6</p>
         </div>
-        <div class="text-sm font-medium text-gray-400" x-show="step < 6">
-            <button @click="step--" x-show="step > 1" class="text-blue-600 hover:underline mr-4">Previous Step</button>
+        <div class="text-sm font-medium text-gray-400">
+            <button type="button" @click="goBack()" x-show="step > 1" class="inline-flex items-center text-blue-600 hover:text-blue-800 hover:underline font-medium">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                Back
+            </button>
         </div>
     </div>
 
@@ -109,7 +112,8 @@
                 </div>
             </div>
             
-            <div class="mt-8 flex flex-col sm:flex-row sm:justify-end">
+            <div class="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:justify-between sm:gap-0">
+                <x-button type="button" variant="secondary" @click="goBack()" class="w-full sm:w-auto justify-center">← Back</x-button>
                 <x-button type="button" variant="primary" @click="validateStep2()" class="w-full sm:w-auto justify-center">Next Step →</x-button>
             </div>
         </div>
@@ -162,7 +166,8 @@
                 </template>
             </div>
             
-            <div class="mt-8 flex flex-col sm:flex-row sm:justify-end">
+            <div class="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:justify-between sm:gap-0">
+                <x-button type="button" variant="secondary" @click="goBack()" class="w-full sm:w-auto justify-center">← Back</x-button>
                 <x-button type="button" variant="primary" @click="validateStep3()" class="w-full sm:w-auto justify-center">Next Step →</x-button>
             </div>
         </div>
@@ -208,7 +213,8 @@
                 </div>
             </div>
             
-            <div class="mt-8 flex flex-col sm:flex-row sm:justify-end">
+            <div class="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:justify-between sm:gap-0">
+                <x-button type="button" variant="secondary" @click="goBack()" class="w-full sm:w-auto justify-center">← Back</x-button>
                 <x-button type="button" variant="primary" @click="validateStep4()" class="w-full sm:w-auto justify-center">Next Step →</x-button>
             </div>
         </div>
@@ -258,7 +264,8 @@
                 <textarea x-model="form.order_remarks" class="block w-full text-sm border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500" rows="2" placeholder="e.g. Urgent requirement, deliver next week..."></textarea>
             </div>
             
-            <div class="mt-8 flex flex-col sm:flex-row sm:justify-end">
+            <div class="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:justify-between sm:gap-0">
+                <x-button type="button" variant="secondary" @click="goBack()" class="w-full sm:w-auto justify-center">← Back</x-button>
                 <x-button type="button" variant="primary" @click="validateStep5()" class="w-full sm:w-auto justify-center">Review & Submit →</x-button>
             </div>
         </div>
@@ -323,7 +330,8 @@
                 </div>
             </div>
             
-            <div class="mt-8 flex flex-col sm:flex-row sm:justify-end">
+            <div class="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:justify-between sm:gap-0">
+                <x-button type="button" variant="secondary" @click="goBack()" class="w-full sm:w-auto justify-center">← Back</x-button>
                 <x-button type="button" id="submit-btn" class="bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto justify-center" @click="submitVisit()">Submit Visit</x-button>
             </div>
         </div>
@@ -374,6 +382,15 @@
                             this.locationStatus = 'Warning: Could not get GPS (' + error.message + ')';
                         }
                     );
+                }
+            },
+
+            // Navigation
+            goBack() {
+                if (this.step > 1) {
+                    this.errorMessage = '';
+                    this.step--;
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                 }
             },
 

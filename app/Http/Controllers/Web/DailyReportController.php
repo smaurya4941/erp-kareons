@@ -67,7 +67,12 @@ class DailyReportController extends Controller
     public function show(DailyReport $report)
     {
         $report->load('user');
-        return view('admin.reports.show', compact('report'));
+
+        // Prefer authoritative attendance values over the (possibly stale) snapshot.
+        ['working_hours' => $workingHours, 'check_in' => $checkIn, 'check_out' => $checkOut]
+            = $report->resolvedAttendance();
+
+        return view('admin.reports.show', compact('report', 'workingHours', 'checkIn', 'checkOut'));
     }
 
     public function markReviewed(Request $request, DailyReport $report)

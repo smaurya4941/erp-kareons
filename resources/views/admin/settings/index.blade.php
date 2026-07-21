@@ -24,7 +24,7 @@
                 </button>
                 <button @click="activeTab = 'maps'" :class="{ 'bg-blue-50 text-blue-700 border-l-4 border-blue-600': activeTab === 'maps', 'text-gray-600 hover:bg-gray-50 border-l-4 border-transparent': activeTab !== 'maps' }" class="px-6 py-4 text-left font-semibold text-sm transition-colors border-t flex items-center">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
-                    Google Maps
+                    Maps
                 </button>
                 <button @click="activeTab = 'system'" :class="{ 'bg-blue-50 text-blue-700 border-l-4 border-blue-600': activeTab === 'system', 'text-gray-600 hover:bg-gray-50 border-l-4 border-transparent': activeTab !== 'system' }" class="px-6 py-4 text-left font-semibold text-sm transition-colors border-t flex items-center">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"></path></svg>
@@ -47,7 +47,7 @@
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <!-- Branding -->
-                        <div class="md:col-span-2 flex space-x-8 mb-4">
+                        <div class="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-8 mb-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Company Logo</label>
                                 <div class="flex items-center space-x-4">
@@ -58,8 +58,25 @@
                                             <span class="text-xs text-gray-400">None</span>
                                         @endif
                                     </div>
-                                    <input type="file" name="company_logo" class="text-sm">
+                                    <input type="file" name="company_logo" accept="image/png,image/jpeg,image/svg+xml,image/webp" class="text-sm">
                                 </div>
+                                <p class="text-xs text-gray-500 mt-1">Shown in the sidebar, navbar and login. PNG/SVG recommended.</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Favicon</label>
+                                <div class="flex items-center space-x-4">
+                                    <div class="h-16 w-16 bg-gray-100 rounded flex items-center justify-center border">
+                                        @if($getSetting('favicon', 'company'))
+                                            <img src="{{ asset('storage/' . $getSetting('favicon', 'company')) }}" class="max-h-14 max-w-14 object-contain">
+                                        @elseif($getSetting('company_logo', 'company'))
+                                            <img src="{{ asset('storage/' . $getSetting('company_logo', 'company')) }}" class="max-h-14 max-w-14 object-contain opacity-60">
+                                        @else
+                                            <span class="text-xs text-gray-400">None</span>
+                                        @endif
+                                    </div>
+                                    <input type="file" name="favicon" accept="image/png,image/x-icon,image/svg+xml,image/webp" class="text-sm">
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">Browser tab icon. Falls back to the logo if left empty.</p>
                             </div>
                         </div>
 
@@ -147,24 +164,19 @@
             </x-card>
         </div>
 
-        <!-- Google Maps Settings -->
+        <!-- Maps Settings -->
         <div x-show="activeTab === 'maps'" style="display: none;">
             <x-card>
-                <h3 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Google Maps Integration</h3>
-                <div class="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-800">
-                    <strong>Note:</strong> A valid Google Maps API Key is required for GPS attendance tracking and mapping doctor visit locations.
+                <h3 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Map Settings (OpenStreetMap)</h3>
+                <div class="mb-4 p-4 bg-green-50 border border-green-200 rounded text-sm text-green-800">
+                    <strong>Note:</strong> Maps are powered by OpenStreetMap via Leaflet. No API key is required for GPS attendance tracking or mapping doctor visit locations.
                 </div>
-                
+
                 <form method="POST" action="{{ route('admin.settings.store') }}">
                     @csrf
                     <input type="hidden" name="setting_group" value="maps">
-                    
+
                     <div class="space-y-4">
-                        <div>
-                            <x-label for="google_maps_api_key" value="Google Maps API Key" />
-                            <x-input id="google_maps_api_key" name="google_maps_api_key" type="password" class="block w-full mt-1" value="{{ $getSetting('google_maps_api_key', 'maps') }}" placeholder="AIzaSy..." />
-                            <p class="text-xs text-gray-500 mt-1">Leave blank to disable map features.</p>
-                        </div>
                         <div>
                             <x-label for="map_zoom_level" value="Default Map Zoom Level" />
                             <x-input id="map_zoom_level" name="map_zoom_level" type="number" min="1" max="20" class="block w-1/3 mt-1" value="{{ $getSetting('map_zoom_level', 'maps', 'integer', '15') }}" />
