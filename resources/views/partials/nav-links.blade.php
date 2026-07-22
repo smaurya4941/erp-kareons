@@ -1,11 +1,11 @@
 @php
     // Shared classes for nav items so desktop + mobile stay in sync.
-    $navBase = 'inline-flex items-center w-full px-4 py-2.5 text-sm font-medium transition-all duration-300 rounded-xl hover:bg-gray-800/80 hover:text-white group';
+    $navBase = 'inline-flex items-center w-full px-4 py-2 text-sm font-medium transition-all duration-300 rounded-xl hover:bg-gray-800/80 hover:text-white group';
     $navActive = 'bg-[#5B4CF0] text-white shadow-[0_0_15px_rgba(91,76,240,0.5)] border-l-4 border-l-[#8B5CF6]';
     $navIdle = 'text-gray-400';
 @endphp
 
-<ul class="mt-8 space-y-2 px-3">
+<ul class="mt-4 space-y-1 px-3">
     {{-- Dashboard (role-aware target) --}}
     @php $dashboardRoute = auth()->user()?->hasRole('Admin') ? 'admin.dashboard' : 'mr.dashboard'; @endphp
     <li class="relative">
@@ -35,7 +35,7 @@
         </a>
     </li>
 
-    <div class="pt-6 pb-2 px-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+    <div class="pt-3 pb-1 px-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
         Field Operations
     </div>
     <li class="relative">
@@ -78,8 +78,8 @@
             <span class="ml-4">Sample Assignment</span>
         </a>
     </li>
-    <li class="relative mt-8">
-        <div class="h-px bg-gray-800 w-full mb-4"></div>
+    <li class="relative mt-3">
+        <div class="h-px bg-gray-800 w-full mb-2"></div>
         <a class="{{ $navBase }} {{ request()->routeIs('admin.settings.*') ? $navActive : $navIdle }}" href="{{ route('admin.settings.index') }}">
             <svg class="w-5 h-5" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
@@ -99,7 +99,7 @@
     @endrole
 
     @role('MR')
-    <div class="pt-6 pb-2 px-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+    <div class="pt-3 pb-1 px-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
         My Work
     </div>
     <li class="relative">

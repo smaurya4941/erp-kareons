@@ -43,9 +43,9 @@
                     </span>
                 </div>
                 <p class="text-sm text-gray-500 mt-0.5">
-                    {{ $report->date->format('l, d M Y') }}
+                    {{ $report->date?->format('l, d M Y') ?? 'No date' }}
                     <span class="text-gray-300">·</span>
-                    submitted {{ $report->updated_at->format('d M Y, h:i A') }}
+                    submitted {{ $report->updated_at?->format('d M Y, h:i A') ?? '—' }}
                 </p>
             </div>
         </div>

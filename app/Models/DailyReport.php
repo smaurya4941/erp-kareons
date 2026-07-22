@@ -42,9 +42,11 @@ class DailyReport extends Model
     {
         $snap = $this->stats_snapshot['attendance'] ?? [];
 
-        $attendance = Attendance::where('user_id', $this->user_id)
-            ->where('date', $this->date->toDateString())
-            ->first();
+        $attendance = $this->date 
+            ? Attendance::where('user_id', $this->user_id)
+                ->where('date', $this->date->toDateString())
+                ->first() 
+            : null;
 
         $minutes = $attendance->working_minutes ?? $snap['working_minutes'] ?? null;
 
