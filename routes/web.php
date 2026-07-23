@@ -13,8 +13,16 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Storage Link Route (for Hostinger setup)
 Route::get('/linkstorage', function () {
+    $target = public_path('storage');
+    if (file_exists($target)) {
+        if (is_link($target)) {
+            unlink($target);
+        } else {
+            \Illuminate\Support\Facades\File::deleteDirectory($target);
+        }
+    }
     \Illuminate\Support\Facades\Artisan::call('storage:link');
-    return 'Storage Link Created Successfully';
+    return 'Storage link output: ' . \Illuminate\Support\Facades\Artisan::output();
 });
 
 // Protected Routes

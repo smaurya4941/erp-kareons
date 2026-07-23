@@ -15,9 +15,16 @@ Route::prefix('v1')->group(function () {
         Route::put('/profile', [\App\Http\Controllers\Api\ProfileController::class, 'update']);
         Route::put('/profile/password', [\App\Http\Controllers\Api\ProfileController::class, 'updatePassword']);
 
+        // Notifications (shared by Admin & MR)
+        Route::get('/notifications', [\App\Http\Controllers\Api\NotificationController::class, 'index']);
+        Route::get('/notifications/feed', [\App\Http\Controllers\Api\NotificationController::class, 'feed']);
+        Route::post('/notifications/read-all', [\App\Http\Controllers\Api\NotificationController::class, 'readAll']);
+        Route::post('/notifications/{id}/read', [\App\Http\Controllers\Api\NotificationController::class, 'read']);
+
         // Admin Only API Routes
         Route::middleware(['role:Admin'])->group(function () {
             Route::post('users/{user}/toggle-status', [UserController::class, 'toggleStatus']);
+            Route::post('users/{user}/reset-password', [UserController::class, 'resetPassword']);
             Route::apiResource('users', UserController::class);
 
             Route::post('products/{product}/toggle-status', [\App\Http\Controllers\Api\ProductController::class, 'toggleStatus']);
@@ -34,6 +41,7 @@ Route::prefix('v1')->group(function () {
             Route::patch('orders/{order}/status', [\App\Http\Controllers\Api\OrderController::class, 'updateStatus']);
             
             Route::get('daily-report/summary', [\App\Http\Controllers\Api\DailyReportController::class, 'summary']);
+            Route::patch('daily-reports/{dailyReport}/review', [\App\Http\Controllers\Api\DailyReportController::class, 'review']);
             Route::apiResource('daily-reports', \App\Http\Controllers\Api\DailyReportController::class)->only(['index', 'show']);
             
             Route::get('dashboard', [\App\Http\Controllers\Api\DashboardController::class, 'summary']);
@@ -50,6 +58,8 @@ Route::prefix('v1')->group(function () {
 
         // MR Only API Routes
         Route::middleware(['role:MR'])->prefix('mr')->group(function () {
+            Route::get('/dashboard', [\App\Http\Controllers\Api\Mr\DashboardController::class, 'summary']);
+
             Route::get('/samples', [\App\Http\Controllers\Api\Mr\SampleController::class, 'index']);
             
             Route::get('/attendance', [\App\Http\Controllers\Api\Mr\AttendanceController::class, 'index']);

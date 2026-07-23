@@ -43,6 +43,23 @@ class DailyReportController extends BaseApiController
     }
 
     /**
+     * Admin marks a submitted report as Reviewed.
+     */
+    public function review(DailyReport $dailyReport): JsonResponse
+    {
+        if ($dailyReport->status !== 'Submitted') {
+            return $this->errorResponse('Report cannot be reviewed.', 400);
+        }
+
+        $dailyReport->update(['status' => 'Reviewed']);
+
+        return $this->successResponse(
+            new DailyReportResource($dailyReport->fresh('user')),
+            'Report marked as Reviewed.'
+        );
+    }
+
+    /**
      * Generate a summary of submitted reports for a given date.
      */
     public function summary(Request $request): JsonResponse

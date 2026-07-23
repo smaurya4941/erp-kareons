@@ -113,10 +113,32 @@ Returns the authenticated user (UserResource).
 | `PUT` | `/profile` | `name`, `mobile`, `address`, … |
 | `PUT` | `/profile/password` | `current_password`, `password`, `password_confirmation` |
 
+### Notifications (shared by Admin & MR)
+| Method | Path | Notes |
+|---|---|---|
+| `GET` | `/notifications` | Paginated history (`?per_page=20`) |
+| `GET` | `/notifications/feed` | `{ unread_count, notifications: [latest 10] }` for a bell/dropdown |
+| `POST` | `/notifications/read-all` | Marks all as read |
+| `POST` | `/notifications/{id}/read` | Marks one as read; returns its `url` |
+
+Each notification item: `{ id, type, icon, title, message, url, is_read, created_at }`.
+
 ---
 
 ## 3. MR (Medical Representative) endpoints
 Prefix: `/mr` — requires role `MR`.
+
+### 3.0 Dashboard
+`GET /mr/dashboard` — today's home-screen summary for the logged-in MR:
+```jsonc
+{
+  "attendance": { "checked_in": true, "checked_out": false, "check_in_time": "…",
+                  "check_out_time": null, "is_late": false, "working_hours": "3h 20m" },
+  "stats": { "visits_today": 4, "target_visits": 12, "orders_today": 2, "samples_given_today": 15 },
+  "sample_stock": { "assigned": 200, "distributed": 60, "remaining": 140, "low_stock": 1 },
+  "daily_report": { "submitted": false, "status": null }
+}
+```
 
 ### 3.1 Attendance
 | Method | Path | Notes |
@@ -238,7 +260,8 @@ Requires role `Admin`.
 
 ### 4.1 Users (MRs)
 Full REST resource: `GET|POST /users`, `GET|PUT|DELETE /users/{user}`,
-plus `POST /users/{user}/toggle-status`.
+plus `POST /users/{user}/toggle-status`
+and `POST /users/{user}/reset-password` (`{ password, password_confirmation }` — admin reset, no current-password needed).
 
 ### 4.2 Products
 Full REST resource: `/products`, plus `POST /products/{product}/toggle-status`.
@@ -269,6 +292,7 @@ Full REST resource: `/products`, plus `POST /products/{product}/toggle-status`.
 |---|---|
 | `GET` | `/daily-reports` (filters: `date`, `user_id`) |
 | `GET` | `/daily-reports/{dailyReport}` |
+| `PATCH` | `/daily-reports/{dailyReport}/review` — marks a `Submitted` report as `Reviewed` |
 | `GET` | `/daily-report/summary?date=YYYY-MM-DD` |
 
 ### 4.7 Dashboard

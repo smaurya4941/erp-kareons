@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Api;
 use App\Http\Requests\User\StoreUserRequest;
 use App\Http\Requests\User\UpdateUserRequest;
 use App\Http\Requests\User\ChangePasswordRequest;
+use App\Http\Requests\User\ResetPasswordRequest;
 use App\Http\Resources\UserResource;
+use App\Helpers\ActivityLogger;
 use App\Models\User;
 use App\Services\UserService;
 use Illuminate\Http\JsonResponse;
@@ -92,6 +94,26 @@ class UserController extends BaseApiController
     {
         $user = $this->userService->toggleStatus($user);
         return $this->successResponse(new UserResource($user), 'User status toggled successfully');
+    }
+
+    /**
+     * Admin resets an MR's password (no current-password check required).
+     */
+    public function resetPassword(ResetPasswordRequest $request, User $user): JsonResponse
+    {
+        $this->userService->changePassword($user, $request->validated()['password']);
+
+        ActivityLogger::log(
+            'User Management',
+            'Reset Password',
+            "Admin reset the password for {$user->name} ({$user->employee_code}).",
+            $user,
+            null,
+            'Success',
+            'Warning'
+        );
+
+        return $this->successResponse([], "Password for {$user->name} has been reset successfully.");
     }
 
     /**
