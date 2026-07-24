@@ -60,6 +60,9 @@ Route::prefix('v1')->group(function () {
         Route::middleware(['role:MR'])->prefix('mr')->group(function () {
             Route::get('/dashboard', [\App\Http\Controllers\Api\Mr\DashboardController::class, 'summary']);
 
+            // Read-only product catalogue for pickers (visits, samples, orders)
+            Route::get('/products', [\App\Http\Controllers\Api\Mr\ProductController::class, 'index']);
+
             Route::get('/samples', [\App\Http\Controllers\Api\Mr\SampleController::class, 'index']);
             
             Route::get('/attendance', [\App\Http\Controllers\Api\Mr\AttendanceController::class, 'index']);
